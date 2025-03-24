@@ -9,19 +9,15 @@
     if(txnId) {
         localStorage.setItem(`rejected_${txnId}`, 'true');
         
-        if (window.opener) {
-            window.opener.postMessage({ 
-                type: 'paymentRejected', 
-                txnId: txnId 
-            }, '*');
-        }
-        
-        alert(`Transaction ${txnId} rejected!`);
-        setTimeout(() => window.close(), 1000);
+        setTimeout(() => {
+            window.opener.postMessage({ type: 'paymentRejected', txnId }, '*');
+            window.close();
+        }, 2000);
     }
     </script>
 </head>
 <body>
     <h1>Processing rejection...</h1>
+    <p>You can close this window</p>
 </body>
 </html>
