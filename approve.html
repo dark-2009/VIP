@@ -15,20 +15,16 @@
             timestamp: new Date().toISOString()
         }));
         
-        // Notify main window if opened from iframe
-        if (window.opener) {
-            window.opener.postMessage({ 
-                type: 'paymentApproved', 
-                txnId: txnId 
-            }, '*');
-        }
-        
-        alert(`Transaction ${txnId} approved!`);
-        setTimeout(() => window.close(), 1000);
+        // Close the window after 2 seconds
+        setTimeout(() => {
+            window.opener.postMessage({ type: 'paymentApproved', txnId }, '*');
+            window.close();
+        }, 2000);
     }
     </script>
 </head>
 <body>
     <h1>Processing approval...</h1>
+    <p>You can close this window</p>
 </body>
 </html>
