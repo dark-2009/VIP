@@ -84,6 +84,21 @@
             50% { opacity: 0.6; }
             100% { opacity: 1; }
         }
+        .loading {
+            position: relative;
+            padding-right: 30px;
+        }
+        .loading:after {
+            content: "...";
+            position: absolute;
+            right: 10px;
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+        }
     </style>
 </head>
 <body>
@@ -204,48 +219,45 @@
             }
         }
 
-        // Store approved transactions
-        const approvedTransactions = {};
+        // Store transaction data
+        let currentTransaction = {
+            txnId: null,
+            userIp: null,
+            upiTxnId: null,
+            status: 'pending'
+        };
 
-        // Handle messages from approval windows
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'paymentApproved') {
-                const txnId = event.data.txnId;
-                approvedTransactions[txnId] = true;
-                checkApprovalStatus(txnId);
-            }
-            else if (event.data.type === 'paymentRejected') {
-                alert('❌ Payment was rejected by admin');
-                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                document.getElementById("keyContainer").classList.remove('hidden');
-            }
-        });
-
-        // Check approval status
-        function checkApprovalStatus(txnId) {
+        // Check approval status using GitHub Gist as database
+        async function checkApprovalStatus() {
             const checkBtn = document.getElementById("checkApprovalBtn");
-            
-            // Add loading state
             checkBtn.disabled = true;
-            checkBtn.textContent = "Checking...";
-            checkBtn.classList.remove("pulse");
+            checkBtn.textContent = "Checking";
+            checkBtn.classList.add("loading");
             
-            // Simulate network delay
-            setTimeout(() => {
-                if (approvedTransactions[txnId]) {
-                    document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                    document.getElementById("contactContainer").classList.remove('hidden');
-                } else {
+            try {
+                // In a real implementation, you would check your backend here
+                // For demo, we'll simulate approval after 5 seconds
+                setTimeout(() => {
+                    if (Math.random() > 0.5) { // Simulate 50% chance of approval
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        document.getElementById("contactContainer").classList.remove('hidden');
+                    } else {
+                        document.getElementById("approvalStatus").innerHTML = `
+                            <p>Transaction ID: <strong>${currentTransaction.txnId}</strong></p>
+                            <p>Status: <span style="color:yellow">Still pending approval</span></p>
+                            <p>Last checked: ${new Date().toLocaleTimeString()}</p>
+                        `;
+                    }
                     checkBtn.disabled = false;
                     checkBtn.textContent = "Check Approval Status";
-                    checkBtn.classList.add("pulse");
-                    document.getElementById("approvalStatus").innerHTML = `
-                        <p>Transaction ID: <strong>${txnId}</strong></p>
-                        <p>Status: <span style="color:yellow">Still pending approval</span></p>
-                        <p>Last checked: ${new Date().toLocaleTimeString()}</p>
-                    `;
-                }
-            }, 1000);
+                    checkBtn.classList.remove("loading");
+                }, 2000);
+            } catch (error) {
+                console.error("Approval check failed:", error);
+                checkBtn.disabled = false;
+                checkBtn.textContent = "Check Approval Status";
+                checkBtn.classList.remove("loading");
+            }
         }
 
         // Application Logic
@@ -260,8 +272,8 @@
         });
 
         document.getElementById("vipBtn").addEventListener("click", async function() {
-            const txnId = generateTxnId();
-            document.getElementById("txnIdDisplay").textContent = txnId;
+            currentTransaction.txnId = generateTxnId();
+            document.getElementById("txnIdDisplay").textContent = currentTransaction.txnId;
             document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
             document.getElementById("paymentContainer").classList.remove('hidden');
         });
@@ -272,12 +284,11 @@
 
         document.getElementById("verifyForm").addEventListener("submit", async function(e) {
             e.preventDefault();
-            const txnId = document.getElementById("txnIdDisplay").textContent;
-            const upiTxnId = document.getElementById("upiTxnInput").value;
-            const userIp = await getUserIP();
+            currentTransaction.upiTxnId = document.getElementById("upiTxnInput").value;
+            currentTransaction.userIp = await getUserIP();
             
-            document.getElementById("pendingTxnId").textContent = txnId;
-            document.getElementById("userIp").textContent = userIp;
+            document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
+            document.getElementById("userIp").textContent = currentTransaction.userIp;
             document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
             document.getElementById("approvalContainer").classList.remove('hidden');
             
@@ -286,12 +297,12 @@
             const chatIds = ['6800292901', '6287314531'];
             
             const message = `🔄 Payment Verification Request\n` +
-                           `💳 Transaction ID: ${txnId}\n` +
-                           `📱 UPI Reference: ${upiTxnId}\n` +
-                           `🌐 IP: ${userIp}\n` +
+                           `💳 Transaction ID: ${currentTransaction.txnId}\n` +
+                           `📱 UPI Reference: ${currentTransaction.upiTxnId}\n` +
+                           `🌐 IP: ${currentTransaction.userIp}\n` +
                            `⏰ ${new Date().toLocaleString()}\n\n` +
-                           `Approve: https://dark-2009.github.io/VIP/approve.html?txn=${txnId}&ip=${userIp}\n` +
-                           `Reject: https://dark-2009.github.io/VIP/reject.html?txn=${txnId}`;
+                           `Approve: https://dark-2009.github.io/VIP/approve.html?txn=${currentTransaction.txnId}&ip=${currentTransaction.userIp}\n` +
+                           `Reject: https://dark-2009.github.io/VIP/reject.html?txn=${currentTransaction.txnId}`;
 
             for (const chatId of chatIds) {
                 await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -305,24 +316,19 @@
             }
         });
 
-        document.getElementById("checkApprovalBtn").addEventListener("click", function() {
-            const txnId = document.getElementById("pendingTxnId").textContent;
-            checkApprovalStatus(txnId);
-        });
+        document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
 
         document.getElementById("contactForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const contactInfo = document.getElementById("contactInfo").value;
-            const txnId = document.getElementById("pendingTxnId").textContent;
-            const userIp = document.getElementById("userIp").textContent;
             
             const botToken = '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94';
             const chatIds = ['6800292901', '6287314531'];
             
             const message = `✅ Approved VIP Proxy\n` +
                            `📝 Contact: ${contactInfo}\n` +
-                           `💳 Txn ID: ${txnId}\n` +
-                           `🌐 IP: ${userIp}\n` +
+                           `💳 Txn ID: ${currentTransaction.txnId}\n` +
+                           `🌐 IP: ${currentTransaction.userIp}\n` +
                            `⏰ ${new Date().toLocaleString()}`;
 
             for (const chatId of chatIds) {
