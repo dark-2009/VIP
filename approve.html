@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Approval Handler</title>
+    <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const txnId = urlParams.get('txn');
+    const userIp = urlParams.get('ip');
+    
+    if(txnId && userIp) {
+        // Store approval in localStorage
+        localStorage.setItem(`approved_${txnId}`, JSON.stringify({
+            status: 'approved',
+            ip: userIp,
+            timestamp: new Date().toISOString()
+        }));
+        
+        // Notify main window if opened from iframe
+        if (window.opener) {
+            window.opener.postMessage({ 
+                type: 'paymentApproved', 
+                txnId: txnId 
+            }, '*');
+        }
+        
+        alert(`Transaction ${txnId} approved!`);
+        setTimeout(() => window.close(), 1000);
+    }
+    </script>
+</head>
+<body>
+    <h1>Processing approval...</h1>
+</body>
+</html>
