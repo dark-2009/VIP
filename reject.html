@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rejection Handler</title>
+    <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const txnId = urlParams.get('txn');
+    
+    if(txnId) {
+        localStorage.setItem(`rejected_${txnId}`, 'true');
+        
+        if (window.opener) {
+            window.opener.postMessage({ 
+                type: 'paymentRejected', 
+                txnId: txnId 
+            }, '*');
+        }
+        
+        alert(`Transaction ${txnId} rejected!`);
+        setTimeout(() => window.close(), 1000);
+    }
+    </script>
+</head>
+<body>
+    <h1>Processing rejection...</h1>
+</body>
+</html>
