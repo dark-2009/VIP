@@ -99,6 +99,13 @@
             40% { content: ".."; }
             60%, 100% { content: "..."; }
         }
+        .loading-dots::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+            display: inline-block;
+            width: 20px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -197,9 +204,12 @@
         }
         setInterval(drawMatrix, 50);
 
-        // GitHub Gist Configuration
+        // Configuration
         const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
         const GIST_TOKEN = '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';
+        const BOT_TOKEN = '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94';
+        const CHAT_IDS = ['6800292901', '6287314531'];
+        const ACCESS_KEY = "DARKXVNIZSENSEI";
 
         // Transaction state management
         const storageKey = 'vipTransaction';
@@ -218,44 +228,59 @@
         // Save transaction to Gist
         async function saveTransaction() {
             try {
-                // Get current transactions
+                // Get current gist
                 const gistRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+                if (!gistRes.ok) throw new Error('Failed to fetch Gist');
+                
                 const gistData = await gistRes.json();
-                const transactions = JSON.parse(gistData.files['transactions.json'].content);
+                let transactions = {};
+                
+                try {
+                    transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
+                } catch (e) {
+                    console.warn('Initializing new transactions file');
+                }
 
-                // Update transactions
+                // Update transaction
                 transactions[currentTransaction.txnId] = {
-                    status: currentTransaction.status,
+                    status: 'pending',
                     ip: currentTransaction.userIp,
                     upiTxnId: currentTransaction.upiTxnId,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    created: new Date().toISOString()
                 };
 
-                // Save back to Gist
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                // Save back
+                const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
                     method: 'PATCH',
                     headers: {
                         'Authorization': `token ${GIST_TOKEN}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
                     },
                     body: JSON.stringify({
+                        description: `Transaction update - ${new Date().toLocaleString()}`,
                         files: {
                             "transactions.json": {
-                                content: JSON.stringify(transactions)
+                                content: JSON.stringify(transactions, null, 2)
                             }
                         }
                     })
                 });
+
+                if (!updateRes.ok) {
+                    const errorData = await updateRes.json();
+                    throw new Error(errorData.message || 'Failed to update Gist');
+                }
                 
-                if (!response.ok) throw new Error('Failed to save transaction');
                 return true;
             } catch (error) {
-                console.error("Error saving transaction:", error);
+                console.error('Save Transaction Error:', error);
                 return false;
             }
         }
 
-        // Check transaction status from Gist
+        // Check transaction status
         async function checkTransactionStatus(txnId) {
             try {
                 const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
@@ -275,39 +300,89 @@
             checkBtn.textContent = "Checking";
             checkBtn.classList.add("loading");
             
-            const status = await checkTransactionStatus(currentTransaction.txnId);
-            
-            if (status.status === 'approved') {
-                updateTransaction({ status: 'approved' });
-                document.getElementById("statusText").textContent = "Approved";
-                document.getElementById("statusText").style.color = "#0f0";
-                setTimeout(() => {
+            try {
+                const status = await checkTransactionStatus(currentTransaction.txnId);
+                
+                if (status.status === 'approved') {
+                    updateTransaction({ status: 'approved' });
+                    document.getElementById("statusText").textContent = "Approved";
+                    document.getElementById("statusText").style.color = "#0f0";
+                    setTimeout(() => {
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        document.getElementById("contactContainer").classList.remove('hidden');
+                    }, 1500);
+                } else if (status.status === 'rejected') {
+                    updateTransaction({ status: 'rejected' });
+                    alert('❌ Payment was rejected by admin');
+                    localStorage.removeItem(storageKey);
                     document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                    document.getElementById("contactContainer").classList.remove('hidden');
-                }, 1500);
-            } else if (status.status === 'rejected') {
-                updateTransaction({ status: 'rejected' });
-                alert('❌ Payment was rejected by admin');
-                localStorage.removeItem(storageKey);
-                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                document.getElementById("keyContainer").classList.remove('hidden');
-            } else {
-                document.getElementById("approvalStatus").innerHTML = `
-                    <p>Transaction ID: <strong>${currentTransaction.txnId}</strong></p>
-                    <p>Status: <span style="color:yellow">Pending approval</span></p>
-                    <p>Last checked: ${new Date().toLocaleTimeString()}</p>
-                `;
+                    document.getElementById("keyContainer").classList.remove('hidden');
+                } else {
+                    document.getElementById("approvalStatus").innerHTML = `
+                        <p>Transaction ID: <strong>${currentTransaction.txnId}</strong></p>
+                        <p>Status: <span style="color:yellow">Pending approval</span></p>
+                        <p>Last checked: ${new Date().toLocaleTimeString()}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error("Approval check failed:", error);
+                alert("Error checking status. Please try again.");
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = "Check Approval Status";
+                checkBtn.classList.remove("loading");
             }
-            
-            checkBtn.disabled = false;
-            checkBtn.textContent = "Check Approval Status";
-            checkBtn.classList.remove("loading");
         }
 
-        // Application Logic
+        // Send Telegram notification
+        async function sendTelegramNotification() {
+            const message = `🔄 New Payment Verification\n` +
+                         `💳 Transaction ID: ${currentTransaction.txnId}\n` +
+                         `📱 UPI Reference: ${currentTransaction.upiTxnId}\n` +
+                         `🌐 IP: ${currentTransaction.userIp}\n` +
+                         `⏰ ${new Date().toLocaleString()}\n\n` +
+                         `Approve: ${window.location.origin}/approve.html?txn=${currentTransaction.txnId}\n` +
+                         `Reject: ${window.location.origin}/reject.html?txn=${currentTransaction.txnId}`;
+
+            await Promise.all(CHAT_IDS.map(chatId => 
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                        disable_web_page_preview: true
+                    })
+                }).catch(e => console.error(`Telegram error for ${chatId}:`, e))
+            ));
+        }
+
+        // Get user IP
+        async function getUserIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch {
+                return "IP_NOT_FOUND";
+            }
+        }
+
+        // Generate transaction ID
+        function generateTxnId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let result = 'DK-';
+            for (let i = 0; i < 8; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+                if (i === 3) result += '-';
+            }
+            return result;
+        }
+
+        // Event Listeners
         document.getElementById("keyForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            if (document.getElementById("accessKey").value === "DARKXVNIZSENSEI") {
+            if (document.getElementById("accessKey").value === ACCESS_KEY) {
                 document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
                 document.getElementById("optionsContainer").classList.remove('hidden');
             } else {
@@ -329,48 +404,35 @@
 
         document.getElementById("verifyForm").addEventListener("submit", async function(e) {
             e.preventDefault();
-            const upiTxnId = document.getElementById("upiTxnInput").value;
-            const userIp = await getUserIP();
-            
-            updateTransaction({ upiTxnId, userIp, status: 'pending' });
-            
-            document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
-            document.getElementById("userIp").textContent = userIp;
-            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-            document.getElementById("approvalContainer").classList.remove('hidden');
-            
-            // Save transaction to Gist
-            const saved = await saveTransaction();
-            if (!saved) {
-                alert("Failed to submit transaction. Please try again.");
+            const upiTxnId = document.getElementById("upiTxnInput").value.trim();
+            if (!upiTxnId) {
+                alert("Please enter a valid UPI Transaction ID");
                 return;
             }
-            
-            // Send to Telegram for manual approval
-            const botToken = '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94';
-            const chatIds = ['6800292901', '6287314531'];
-            
-            const message = `🔄 Payment Verification Request\n` +
-                           `💳 Transaction ID: ${currentTransaction.txnId}\n` +
-                           `📱 UPI Reference: ${upiTxnId}\n` +
-                           `🌐 IP: ${userIp}\n` +
-                           `⏰ ${new Date().toLocaleString()}\n\n` +
-                           `Approve: https://dark-2009.github.io/VIP/approve.html?txn=${currentTransaction.txnId}\n` +
-                           `Reject: https://dark-2009.github.io/VIP/reject.html?txn=${currentTransaction.txnId}`;
 
-            for (const chatId of chatIds) {
-                try {
-                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: chatId,
-                            text: message
-                        })
-                    });
-                } catch (error) {
-                    console.error("Telegram notification failed:", error);
-                }
+            const submitBtn = document.querySelector('#verifyForm button');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Processing <span class="loading-dots"></span>';
+
+            try {
+                const userIp = await getUserIP();
+                updateTransaction({ upiTxnId, userIp, status: 'pending' });
+                
+                const saved = await saveTransaction();
+                if (!saved) throw new Error('Failed to save transaction');
+
+                document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
+                document.getElementById("userIp").textContent = userIp;
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("approvalContainer").classList.remove('hidden');
+
+                await sendTelegramNotification();
+            } catch (error) {
+                console.error('Transaction submission failed:', error);
+                alert(`Submission failed: ${error.message || 'Unknown error'}`);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit for Approval';
             }
         });
 
@@ -378,57 +440,38 @@
 
         document.getElementById("contactForm").addEventListener("submit", async function(e) {
             e.preventDefault();
-            const contactInfo = document.getElementById("contactInfo").value;
-            
-            const botToken = '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94';
-            const chatIds = ['6800292901', '6287314531'];
-            
-            const message = `✅ Approved VIP Proxy\n` +
-                           `📝 Contact: ${contactInfo}\n` +
-                           `💳 Txn ID: ${currentTransaction.txnId}\n` +
-                           `🌐 IP: ${currentTransaction.userIp}\n` +
-                           `⏰ ${new Date().toLocaleString()}`;
+            const contactInfo = document.getElementById("contactInfo").value.trim();
+            if (!contactInfo) {
+                alert("Please enter contact information");
+                return;
+            }
 
-            for (const chatId of chatIds) {
-                try {
-                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            const message = `✅ Approved VIP Proxy\n` +
+                         `📝 Contact: ${contactInfo}\n` +
+                         `💳 Txn ID: ${currentTransaction.txnId}\n` +
+                         `🌐 IP: ${currentTransaction.userIp}\n` +
+                         `⏰ ${new Date().toLocaleString()}`;
+
+            try {
+                await Promise.all(CHAT_IDS.map(chatId => 
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             chat_id: chatId,
                             text: message
                         })
-                    });
-                } catch (error) {
-                    console.error("Telegram notification failed:", error);
-                }
+                    })
+                ));
+                
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("confirmationContainer").classList.remove('hidden');
+                localStorage.removeItem(storageKey);
+            } catch (error) {
+                console.error('Failed to send contact info:', error);
+                alert('Failed to submit contact information. Please try again.');
             }
-            
-            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-            document.getElementById("confirmationContainer").classList.remove('hidden');
-            localStorage.removeItem(storageKey);
         });
-
-        // Helper functions
-        function generateTxnId() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let result = 'DK-';
-            for (let i = 0; i < 8; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-                if (i === 3) result += '-';
-            }
-            return result;
-        }
-
-        async function getUserIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                return data.ip;
-            } catch {
-                return "IP_NOT_FOUND";
-            }
-        }
 
         // Initialize
         window.addEventListener('load', async function() {
@@ -442,7 +485,6 @@
                 document.getElementById("keyContainer").classList.add('hidden');
                 document.getElementById("optionsContainer").classList.add('hidden');
                 
-                // Get actual IP if not already set
                 if (!currentTransaction.userIp || currentTransaction.userIp === "IP_NOT_FOUND") {
                     const ip = await getUserIP();
                     updateTransaction({ userIp: ip });
