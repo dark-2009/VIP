@@ -106,17 +106,6 @@
             width: 20px;
             text-align: left;
         }
-        .debug-info {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: #0f0;
-            padding: 10px;
-            border: 1px solid #0f0;
-            font-size: 12px;
-            z-index: 1000;
-        }
     </style>
 </head>
 <body>
@@ -175,8 +164,6 @@
         <p>within 12 hours to provided contact.</p>
     </div>
 
-    <div class="debug-info" id="debugConsole"></div>
-
     <script>
         // Matrix Effect
         const canvas = document.getElementById('matrix');
@@ -214,9 +201,7 @@
         // Configuration with secured tokens
         const CONFIG = {
             GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
-            // GitHub Token (split into 3 parts for security):
             GIST_TOKEN: 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub',
-            // Telegram Token (split into 3 parts for security):
             BOT_TOKEN: '779394' + '5096:AAEnx2' + 'qKx3CoNBNJg3dEY17JRocPN0Ehf94',
             CHAT_IDS: ['6800292901', '6287314531'],
             ACCESS_KEY: "KITTU",
@@ -224,14 +209,6 @@
             REJECT_URL: "https://dark-2009.github.io/VIP/reject.html"
         };
 
-        // Debug logging
-        function logDebug(message) {
-            const debugDiv = document.getElementById('debugConsole');
-            debugDiv.innerHTML += `${new Date().toLocaleTimeString()}: ${message}<br>`;
-            console.log(message);
-        }
-
-        // [REST OF YOUR ORIGINAL JAVASCRIPT CODE REMAINS EXACTLY THE SAME]
         // Transaction state management
         const storageKey = 'vipTransaction';
         let currentTransaction = JSON.parse(localStorage.getItem(storageKey)) || {
@@ -244,15 +221,11 @@
         function updateTransaction(update) {
             currentTransaction = { ...currentTransaction, ...update };
             localStorage.setItem(storageKey, JSON.stringify(currentTransaction));
-            logDebug(`Transaction updated: ${JSON.stringify(update)}`);
         }
 
         // Save transaction to Gist
         async function saveTransaction() {
             try {
-                logDebug("Starting transaction save...");
-                
-                // Get current gist
                 const gistRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
                     headers: {
                         'Authorization': `token ${CONFIG.GIST_TOKEN}`,
@@ -266,20 +239,12 @@
                 }
 
                 const gistData = await gistRes.json();
-                logDebug("Gist data received");
                 
-                // Parse existing transactions or create new
                 let transactions = {};
                 if (gistData.files && gistData.files['transactions.json']) {
-                    try {
-                        transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
-                        logDebug(`Loaded ${Object.keys(transactions).length} existing transactions`);
-                    } catch (e) {
-                        logDebug("Creating new transactions object");
-                    }
+                    transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
                 }
 
-                // Update with new transaction
                 transactions[currentTransaction.txnId] = {
                     status: 'pending',
                     ip: currentTransaction.userIp,
@@ -287,10 +252,7 @@
                     timestamp: new Date().toISOString(),
                     created: new Date().toISOString()
                 };
-                logDebug("Transaction data prepared");
 
-                // Save back to Gist
-                logDebug("Saving to GitHub...");
                 const updateRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
                     method: 'PATCH',
                     headers: {
@@ -313,10 +275,9 @@
                     throw new Error(`Failed to update Gist: ${error.message}`);
                 }
 
-                logDebug("Transaction saved successfully");
                 return true;
             } catch (error) {
-                logDebug(`Transaction Save Error: ${error.message}`);
+                console.error('Transaction submission failed:', error);
                 return false;
             }
         }
@@ -420,30 +381,6 @@
             return result;
         }
 
-        // Test GitHub connection
-        async function testGitHubConnection() {
-            try {
-                logDebug("Testing GitHub connection...");
-                const testRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
-                    headers: {
-                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-                
-                if (!testRes.ok) {
-                    const error = await testRes.json();
-                    throw new Error(`GitHub API Error: ${error.message}`);
-                }
-                
-                logDebug("GitHub connection test successful");
-                return true;
-            } catch (error) {
-                logDebug(`GitHub connection failed: ${error.message}`);
-                return false;
-            }
-        }
-
         // Event Listeners
         document.getElementById("keyForm").addEventListener("submit", function(e) {
             e.preventDefault();
@@ -541,14 +478,6 @@
 
         // Initialize
         window.addEventListener('load', async function() {
-            logDebug("Page loaded");
-            
-            // Test GitHub connection
-            const connectionOk = await testGitHubConnection();
-            if (!connectionOk) {
-                logDebug("Warning: GitHub connection test failed");
-            }
-
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('approve') || urlParams.has('reject')) return;
             
