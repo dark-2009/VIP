@@ -211,12 +211,15 @@
         }
         setInterval(drawMatrix, 50);
 
-        // Configuration
-        const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
-        const GIST_TOKEN = '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';
-        const BOT_TOKEN = '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94';
-        const CHAT_IDS = ['6800292901', '6287314531'];
-        const ACCESS_KEY = "KITTU";
+        // Configuration with fine-grained token
+        const CONFIG = {
+            GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
+            GIST_TOKEN: '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',
+            BOT_TOKEN: '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94',
+            CHAT_IDS: ['6800292901', '6287314531'],
+            ACCESS_KEY: "KITTU",
+            USER_AGENT: 'DarkKnightVIP/1.0'
+        };
 
         // Debug logging
         function logDebug(message) {
@@ -240,33 +243,46 @@
             logDebug(`Transaction updated: ${JSON.stringify(update)}`);
         }
 
-        // Save transaction to Gist
+        // Enhanced Gist Handler with fine-grained token support
+        async function gistRequest(method, body = null) {
+            const headers = {
+                'Authorization': `Bearer ${CONFIG.GIST_TOKEN}`,
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28',
+                'User-Agent': CONFIG.USER_AGENT
+            };
+
+            if (body) {
+                headers['Content-Type'] = 'application/json';
+            }
+
+            const response = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
+                method,
+                headers,
+                body: body ? JSON.stringify(body) : null
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || `GitHub API Error (${response.status})`);
+            }
+
+            return await response.json();
+        }
+
+        // Save transaction to Gist with fine-grained token
         async function saveTransaction() {
             try {
-                logDebug("Starting transaction save...");
+                logDebug("Starting transaction save with fine-grained token...");
                 
                 // Get current gist
-                logDebug("Fetching current gist...");
-                const gistRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                    headers: {
-                        'Authorization': `token ${GIST_TOKEN}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-
-                if (!gistRes.ok) {
-                    const error = await gistRes.json();
-                    throw new Error(`GitHub API Error: ${error.message}`);
-                }
-
-                const gistData = await gistRes.json();
-                logDebug("Gist data received");
+                const gist = await gistRequest('GET');
                 
                 // Parse existing transactions or create new
                 let transactions = {};
-                if (gistData.files && gistData.files['transactions.json']) {
+                if (gist.files && gist.files['transactions.json']) {
                     try {
-                        transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
+                        transactions = JSON.parse(gist.files['transactions.json'].content) || {};
                         logDebug(`Loaded ${Object.keys(transactions).length} existing transactions`);
                     } catch (e) {
                         logDebug("Creating new transactions object");
@@ -284,33 +300,26 @@
                 logDebug("Transaction data prepared");
 
                 // Save back to Gist
-                logDebug("Saving to GitHub...");
-                const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `token ${GIST_TOKEN}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/vnd.github.v3+json'
-                    },
-                    body: JSON.stringify({
-                        description: `Transaction update - ${new Date().toLocaleString()}`,
-                        files: {
-                            "transactions.json": {
-                                content: JSON.stringify(transactions, null, 2)
-                            }
+                await gistRequest('PATCH', {
+                    files: {
+                        "transactions.json": {
+                            content: JSON.stringify(transactions, null, 2)
                         }
-                    })
+                    },
+                    description: `Transaction update - ${new Date().toLocaleString()}`
                 });
 
-                if (!updateRes.ok) {
-                    const error = await updateRes.json();
-                    throw new Error(`Failed to update Gist: ${error.message}`);
-                }
-
-                logDebug("Transaction saved successfully");
+                logDebug("Transaction saved successfully with fine-grained token");
                 return true;
             } catch (error) {
                 logDebug(`Transaction Save Error: ${error.message}`);
+                
+                // Fallback to localStorage
+                const queue = JSON.parse(localStorage.getItem('transaction_queue') || '{}');
+                queue[currentTransaction.txnId] = currentTransaction;
+                localStorage.setItem('transaction_queue', JSON.stringify(queue));
+                
+                logDebug('Saved to localStorage fallback');
                 return false;
             }
         }
@@ -318,9 +327,8 @@
         // Check transaction status
         async function checkTransactionStatus(txnId) {
             try {
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-                const data = await response.json();
-                const transactions = JSON.parse(data.files['transactions.json'].content);
+                const gist = await gistRequest('GET');
+                const transactions = JSON.parse(gist.files['transactions.json'].content);
                 return transactions[txnId] || { status: 'pending' };
             } catch (error) {
                 console.error("Error checking transaction:", error);
@@ -379,8 +387,8 @@
                          `Approve: ${window.location.origin}/approve.html?txn=${currentTransaction.txnId}\n` +
                          `Reject: ${window.location.origin}/reject.html?txn=${currentTransaction.txnId}`;
 
-            await Promise.all(CHAT_IDS.map(chatId => 
-                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            await Promise.all(CONFIG.CHAT_IDS.map(chatId => 
+                fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -415,21 +423,10 @@
         }
 
         // Test GitHub connection
-        async function testGitHubConnection() {
+        async function verifyGitHubConnection() {
             try {
-                logDebug("Testing GitHub connection...");
-                const testRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                    headers: {
-                        'Authorization': `token ${GIST_TOKEN}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-                
-                if (!testRes.ok) {
-                    const error = await testRes.json();
-                    throw new Error(`GitHub API Error: ${error.message}`);
-                }
-                
+                logDebug("Testing GitHub connection with fine-grained token...");
+                await gistRequest('GET');
                 logDebug("GitHub connection test successful");
                 return true;
             } catch (error) {
@@ -441,7 +438,7 @@
         // Event Listeners
         document.getElementById("keyForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            if (document.getElementById("accessKey").value === ACCESS_KEY) {
+            if (document.getElementById("accessKey").value === CONFIG.ACCESS_KEY) {
                 document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
                 document.getElementById("optionsContainer").classList.remove('hidden');
             } else {
@@ -512,8 +509,8 @@
                          `⏰ ${new Date().toLocaleString()}`;
 
             try {
-                await Promise.all(CHAT_IDS.map(chatId => 
-                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                await Promise.all(CONFIG.CHAT_IDS.map(chatId => 
+                    fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -534,12 +531,12 @@
 
         // Initialize
         window.addEventListener('load', async function() {
-            logDebug("Page loaded");
+            logDebug("Page loaded with fine-grained token implementation");
             
-            // Test GitHub connection
-            const connectionOk = await testGitHubConnection();
-            if (!connectionOk) {
-                logDebug("Warning: GitHub connection test failed");
+            // Verify connection on load
+            const isConnected = await verifyGitHubConnection();
+            if (!isConnected) {
+                alert('Warning: Could not connect to GitHub. Transactions will be queued locally.');
             }
 
             const urlParams = new URLSearchParams(window.location.search);
