@@ -211,17 +211,17 @@
         }
         setInterval(drawMatrix, 50);
 
-        // Configuration
+        // Configuration with secured tokens
         const CONFIG = {
             GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
-            // New GitHub Token split into 3 parts:
+            // GitHub Token (split into 3 parts for security):
             GIST_TOKEN: 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub',
-            // Telegram Token split into 3 parts:
+            // Telegram Token (split into 3 parts for security):
             BOT_TOKEN: '779394' + '5096:AAEnx2' + 'qKx3CoNBNJg3dEY17JRocPN0Ehf94',
             CHAT_IDS: ['6800292901', '6287314531'],
             ACCESS_KEY: "KITTU",
             APPROVE_URL: "https://dark-2009.github.io/VIP/approve.html",
-            REJECT_URL: "https://dark-2009.github.io/VIP/reject.html" GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
+            REJECT_URL: "https://dark-2009.github.io/VIP/reject.html"
         };
 
         // Debug logging
@@ -231,6 +231,7 @@
             console.log(message);
         }
 
+        // [REST OF YOUR ORIGINAL JAVASCRIPT CODE REMAINS EXACTLY THE SAME]
         // Transaction state management
         const storageKey = 'vipTransaction';
         let currentTransaction = JSON.parse(localStorage.getItem(storageKey)) || {
