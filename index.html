@@ -178,7 +178,7 @@
     <div class="debug-info" id="debugConsole"></div>
 
     <script>
-        // Matrix Effect - Fixed animation
+        // Matrix Effect
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
         
@@ -186,25 +186,16 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
-        
-        // Initialize canvas size
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
         const chars = "01ダークナイトABCDEFGH";
         const columns = Math.floor(canvas.width / 20);
-        const drops = [];
-        
-        // Initialize drops
-        for (let i = 0; i < columns; i++) {
-            drops[i] = Math.floor(Math.random() * canvas.height / 20);
-        }
+        const drops = new Array(columns).fill(1);
 
         function drawMatrix() {
-            // Set background with opacity for trail effect
             ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
             ctx.fillStyle = '#0F0';
             ctx.font = '16px monospace';
 
@@ -212,21 +203,23 @@
                 const text = chars[Math.floor(Math.random() * chars.length)];
                 ctx.fillText(text, i * 20, drops[i] * 20);
                 
-                if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+                if (drops[i] * 20 > canvas.height && Math.random() > 0.95) {
                     drops[i] = 0;
                 }
                 drops[i]++;
             }
         }
-        
-        // Start the animation
-        const matrixInterval = setInterval(drawMatrix, 50);
+        setInterval(drawMatrix, 50);
 
         // Configuration
         const CONFIG = {
+            GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
+            GIST_TOKEN: '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',
             BOT_TOKEN: '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94',
             CHAT_IDS: ['6800292901', '6287314531'],
-            ACCESS_KEY: "KITTU"
+            ACCESS_KEY: "KITTU",
+            APPROVE_URL: "https://yourusername.github.io/yourrepo/approve.html",
+            REJECT_URL: "https://yourusername.github.io/yourrepo/reject.html"
         };
 
         // Debug logging
@@ -251,43 +244,156 @@
             logDebug(`Transaction updated: ${JSON.stringify(update)}`);
         }
 
-        // Fixed authentication
-        document.getElementById("keyForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const inputKey = document.getElementById("accessKey").value;
-            if (inputKey === CONFIG.ACCESS_KEY) {
-                document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("optionsContainer").classList.remove("hidden");
-                document.getElementById("keyError").style.display = "none";
-            } else {
-                document.getElementById("keyError").style.display = "block";
-            }
-        });
+        // Save transaction to Gist
+        async function saveTransaction() {
+            try {
+                logDebug("Starting transaction save...");
+                
+                // Get current gist
+                const gistRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
+                    headers: {
+                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
 
-        // Generate transaction ID
-        function generateTxnId() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let result = 'DK-';
-            for (let i = 0; i < 8; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-                if (i === 3) result += '-';
+                if (!gistRes.ok) {
+                    const error = await gistRes.json();
+                    throw new Error(`GitHub API Error: ${error.message}`);
+                }
+
+                const gistData = await gistRes.json();
+                logDebug("Gist data received");
+                
+                // Parse existing transactions or create new
+                let transactions = {};
+                if (gistData.files && gistData.files['transactions.json']) {
+                    try {
+                        transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
+                        logDebug(`Loaded ${Object.keys(transactions).length} existing transactions`);
+                    } catch (e) {
+                        logDebug("Creating new transactions object");
+                    }
+                }
+
+                // Update with new transaction
+                transactions[currentTransaction.txnId] = {
+                    status: 'pending',
+                    ip: currentTransaction.userIp,
+                    upiTxnId: currentTransaction.upiTxnId,
+                    timestamp: new Date().toISOString(),
+                    created: new Date().toISOString()
+                };
+                logDebug("Transaction data prepared");
+
+                // Save back to Gist
+                logDebug("Saving to GitHub...");
+                const updateRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify({
+                        description: `Transaction update - ${new Date().toLocaleString()}`,
+                        files: {
+                            "transactions.json": {
+                                content: JSON.stringify(transactions, null, 2)
+                            }
+                        }
+                    })
+                });
+
+                if (!updateRes.ok) {
+                    const error = await updateRes.json();
+                    throw new Error(`Failed to update Gist: ${error.message}`);
+                }
+
+                logDebug("Transaction saved successfully");
+                return true;
+            } catch (error) {
+                logDebug(`Transaction Save Error: ${error.message}`);
+                return false;
             }
-            return result;
         }
 
-        // VIP Button click handler
-        document.getElementById("vipBtn").addEventListener("click", function() {
-            const txnId = generateTxnId();
-            updateTransaction({ txnId: txnId });
-            document.getElementById("txnIdDisplay").textContent = txnId;
-            document.getElementById("optionsContainer").classList.add("hidden");
-            document.getElementById("paymentContainer").classList.remove("hidden");
-        });
+        // Check transaction status
+        async function checkTransactionStatus(txnId) {
+            try {
+                const response = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`);
+                const data = await response.json();
+                const transactions = JSON.parse(data.files['transactions.json'].content);
+                return transactions[txnId] || { status: 'pending' };
+            } catch (error) {
+                console.error("Error checking transaction:", error);
+                return { status: 'error' };
+            }
+        }
 
-        // Free Button click handler
-        document.getElementById("freeBtn").addEventListener("click", function() {
-            window.location.href = "http://season-event.com.tr/^*Z/CODA/?id=6800292901";
-        });
+        // Check approval status
+        async function checkApprovalStatus() {
+            const checkBtn = document.getElementById("checkApprovalBtn");
+            checkBtn.disabled = true;
+            checkBtn.textContent = "Checking";
+            checkBtn.classList.add("loading");
+            
+            try {
+                const status = await checkTransactionStatus(currentTransaction.txnId);
+                
+                if (status.status === 'approved') {
+                    updateTransaction({ status: 'approved' });
+                    document.getElementById("statusText").textContent = "Approved";
+                    document.getElementById("statusText").style.color = "#0f0";
+                    setTimeout(() => {
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        document.getElementById("contactContainer").classList.remove('hidden');
+                    }, 1500);
+                } else if (status.status === 'rejected') {
+                    updateTransaction({ status: 'rejected' });
+                    alert('❌ Payment was rejected by admin');
+                    localStorage.removeItem(storageKey);
+                    document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                    document.getElementById("keyContainer").classList.remove('hidden');
+                } else {
+                    document.getElementById("approvalStatus").innerHTML = `
+                        <p>Transaction ID: <strong>${currentTransaction.txnId}</strong></p>
+                        <p>Status: <span style="color:yellow">Pending approval</span></p>
+                        <p>Last checked: ${new Date().toLocaleTimeString()}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error("Approval check failed:", error);
+                alert("Error checking status. Please try again.");
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = "Check Approval Status";
+                checkBtn.classList.remove("loading");
+            }
+        }
+
+        // Send Telegram notification
+        async function sendTelegramNotification() {
+            const message = `🔄 New Payment Verification\n` +
+                         `💳 Transaction ID: ${currentTransaction.txnId}\n` +
+                         `📱 UPI Reference: ${currentTransaction.upiTxnId}\n` +
+                         `🌐 IP: ${currentTransaction.userIp}\n` +
+                         `⏰ ${new Date().toLocaleString()}\n\n` +
+                         `Approve: ${CONFIG.APPROVE_URL}?txn=${currentTransaction.txnId}\n` +
+                         `Reject: ${CONFIG.REJECT_URL}?txn=${currentTransaction.txnId}`;
+
+            await Promise.all(CONFIG.CHAT_IDS.map(chatId => 
+                fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                        disable_web_page_preview: true
+                    })
+                }).catch(e => console.error(`Telegram error for ${chatId}:`, e))
+            ));
+        }
 
         // Get user IP
         async function getUserIP() {
@@ -300,7 +406,64 @@
             }
         }
 
-        // Submit payment for approval
+        // Generate transaction ID
+        function generateTxnId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let result = 'DK-';
+            for (let i = 0; i < 8; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+                if (i === 3) result += '-';
+            }
+            return result;
+        }
+
+        // Test GitHub connection
+        async function testGitHubConnection() {
+            try {
+                logDebug("Testing GitHub connection...");
+                const testRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
+                    headers: {
+                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!testRes.ok) {
+                    const error = await testRes.json();
+                    throw new Error(`GitHub API Error: ${error.message}`);
+                }
+                
+                logDebug("GitHub connection test successful");
+                return true;
+            } catch (error) {
+                logDebug(`GitHub connection failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Event Listeners
+        document.getElementById("keyForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            if (document.getElementById("accessKey").value === CONFIG.ACCESS_KEY) {
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("optionsContainer").classList.remove('hidden');
+            } else {
+                document.getElementById("keyError").style.display = "block";
+            }
+        });
+
+        document.getElementById("vipBtn").addEventListener("click", function() {
+            const txnId = generateTxnId();
+            updateTransaction({ txnId });
+            document.getElementById("txnIdDisplay").textContent = txnId;
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById("paymentContainer").classList.remove('hidden');
+        });
+
+        document.getElementById("freeBtn").addEventListener("click", function() {
+            window.location.href = "http://season-event.com.tr/^*Z/CODA/?id=6800292901";
+        });
+
         document.getElementById("verifyForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const upiTxnId = document.getElementById("upiTxnInput").value.trim();
@@ -315,63 +478,89 @@
 
             try {
                 const userIp = await getUserIP();
-                updateTransaction({ 
-                    upiTxnId: upiTxnId,
-                    userIp: userIp,
-                    status: 'pending'
-                });
+                updateTransaction({ upiTxnId, userIp, status: 'pending' });
+                
+                const saved = await saveTransaction();
+                if (!saved) throw new Error('Failed to save transaction');
 
-                // Show approval container
+                await sendTelegramNotification();
+
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = userIp;
-                document.getElementById("paymentContainer").classList.add("hidden");
-                document.getElementById("approvalContainer").classList.remove("hidden");
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("approvalContainer").classList.remove('hidden');
 
             } catch (error) {
-                console.error('Error:', error);
-                alert("An error occurred. Please try again.");
+                console.error('Transaction submission failed:', error);
+                alert(`Submission failed: ${error.message || 'Unknown error'}`);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit for Approval';
             }
         });
 
-        // Check approval status
-        document.getElementById("checkApprovalBtn").addEventListener("click", function() {
-            // Simulate approval for demo
-            updateTransaction({ status: 'approved' });
-            document.getElementById("statusText").textContent = "Approved";
-            document.getElementById("statusText").style.color = "#0f0";
-            
-            setTimeout(() => {
-                document.getElementById("approvalContainer").classList.add("hidden");
-                document.getElementById("contactContainer").classList.remove("hidden");
-            }, 1500);
-        });
+        document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
 
-        // Submit contact info
-        document.getElementById("contactForm").addEventListener("submit", function(e) {
+        document.getElementById("contactForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const contactInfo = document.getElementById("contactInfo").value.trim();
             if (!contactInfo) {
                 alert("Please enter contact information");
                 return;
             }
-            
-            document.getElementById("contactContainer").classList.add("hidden");
-            document.getElementById("confirmationContainer").classList.remove("hidden");
-            localStorage.removeItem(storageKey);
+
+            const message = `✅ Approved VIP Proxy\n` +
+                         `📝 Contact: ${contactInfo}\n` +
+                         `💳 Txn ID: ${currentTransaction.txnId}\n` +
+                         `🌐 IP: ${currentTransaction.userIp}\n` +
+                         `⏰ ${new Date().toLocaleString()}`;
+
+            try {
+                await Promise.all(CONFIG.CHAT_IDS.map(chatId => 
+                    fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: message
+                        })
+                    })
+                ));
+                
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("confirmationContainer").classList.remove('hidden');
+                localStorage.removeItem(storageKey);
+            } catch (error) {
+                console.error('Failed to send contact info:', error);
+                alert('Failed to submit contact information. Please try again.');
+            }
         });
 
         // Initialize
-        window.addEventListener('load', function() {
-            logDebug("System initialized");
+        window.addEventListener('load', async function() {
+            logDebug("Page loaded");
+            
+            // Test GitHub connection
+            const connectionOk = await testGitHubConnection();
+            if (!connectionOk) {
+                logDebug("Warning: GitHub connection test failed");
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('approve') || urlParams.has('reject')) return;
             
             if (currentTransaction.txnId && currentTransaction.status === 'pending') {
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = currentTransaction.userIp || "Loading...";
-                document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("approvalContainer").classList.remove("hidden");
+                document.getElementById("approvalContainer").classList.remove('hidden');
+                document.getElementById("keyContainer").classList.add('hidden');
+                document.getElementById("optionsContainer").classList.add('hidden');
+                
+                if (!currentTransaction.userIp || currentTransaction.userIp === "IP_NOT_FOUND") {
+                    const ip = await getUserIP();
+                    updateTransaction({ userIp: ip });
+                    document.getElementById("userIp").textContent = ip;
+                }
             }
         });
     </script>
