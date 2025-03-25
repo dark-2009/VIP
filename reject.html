@@ -29,6 +29,15 @@
             border: 1px solid #f00;
             background: #000;
         }
+        button {
+            background: #f00;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-family: monospace;
+        }
     </style>
     <script>
     const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
@@ -54,7 +63,8 @@
                 status: 'rejected',
                 timestamp: new Date().toISOString(),
                 rejectedBy: 'admin',
-                rejectedAt: new Date().toISOString()
+                rejectedAt: new Date().toISOString(),
+                reason: 'Manual rejection by admin'
             };
 
             // Save updated state
@@ -109,14 +119,7 @@
                         Failed to reject transaction ${txnId}.<br>
                         Please try again.
                     </div>
-                    <button onclick="location.reload()" style="
-                        background: #f00;
-                        color: #000;
-                        border: none;
-                        padding: 10px 20px;
-                        margin-top: 20px;
-                        cursor: pointer;
-                    ">Retry</button>
+                    <button onclick="location.reload()">Retry</button>
                 `;
             }
         });
