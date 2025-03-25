@@ -1,197 +1,102 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Approval Handler</title>
+    <title>Approve Transaction</title>
     <style>
-        body { 
-            background: #000;
-            color: #0f0;
-            font-family: monospace;
-            text-align: center;
-            padding: 2rem;
-        }
-        .loader {
-            border: 4px solid #0f03;
-            border-top: 4px solid #0f0;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .status-box {
-            background: #111;
-            border: 1px solid #0f0;
-            border-radius: 5px;
-            padding: 20px;
-            max-width: 500px;
-            margin: 20px auto;
-        }
-        .debug-console {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: #0f0;
-            padding: 10px;
-            border: 1px solid #0f0;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-            width: 300px;
-        }
-        button {
-            background: #0f0;
-            color: #000;
-            border: none;
-            padding: 8px 16px;
-            margin-top: 10px;
-            cursor: pointer;
-            font-family: monospace;
-        }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .transaction { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 5px 10px; margin-right: 5px; }
     </style>
 </head>
 <body>
-    <div id="app">
-        <h1>Transaction Approval</h1>
-        <div class="status-box" id="statusBox">
-            <div id="statusMessage">Initializing...</div>
-            <div id="loader" class="loader"></div>
-        </div>
-    </div>
-
-    <div class="debug-console" id="debugConsole"></div>
+    <h1>Pending Transactions</h1>
+    <div id="transactions"></div>
 
     <script>
         const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
-        const GIST_TOKEN = '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';
+        const GITHUB_TOKEN = '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';
 
-        // Debug logging
-        function logDebug(message) {
-            const consoleDiv = document.getElementById('debugConsole');
-            consoleDiv.innerHTML += `${new Date().toLocaleTimeString()}: ${message}<br>`;
-            console.log(message);
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;
-        }
-
-        async function approveTransaction(txnId) {
+        async function loadTransactions() {
             try {
-                logDebug(`Starting approval for transaction: ${txnId}`);
-                
-                // 1. Get current gist data
-                logDebug("Fetching current gist...");
-                const gistRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
                     headers: {
-                        'Authorization': `token ${GIST_TOKEN}`,
+                        'Authorization': `token ${GITHUB_TOKEN}`,
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
-
-                if (!gistRes.ok) {
-                    const error = await gistRes.json();
-                    throw new Error(`GitHub API Error: ${error.message}`);
-                }
-
-                const gistData = await gistRes.json();
-                logDebug("Gist data received");
                 
-                // 2. Parse transactions
-                let transactions = {};
-                if (gistData.files && gistData.files['transactions.json']) {
-                    try {
-                        transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
-                        logDebug(`Loaded ${Object.keys(transactions).length} transactions`);
-                    } catch (e) {
-                        throw new Error("Failed to parse transactions");
+                const gistData = await response.json();
+                const transactions = JSON.parse(gistData.files['transactions.json'].content);
+                
+                let html = '';
+                for (const [txnId, data] of Object.entries(transactions)) {
+                    if (data.status === 'pending') {
+                        html += `
+                            <div class="transaction">
+                                <h3>${txnId}</h3>
+                                <p>UPI Ref: ${data.upiRef}</p>
+                                <p>IP: ${data.ip}</p>
+                                <p>Date: ${new Date(data.timestamp).toLocaleString()}</p>
+                                <button onclick="updateStatus('${txnId}', 'approved')">Approve</button>
+                                <button onclick="updateStatus('${txnId}', 'rejected')">Reject</button>
+                            </div>
+                        `;
                     }
                 }
+                
+                document.getElementById('transactions').innerHTML = html || '<p>No pending transactions</p>';
+                
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactions').innerHTML = '<p>Error loading transactions</p>';
+            }
+        }
 
-                // 3. Verify transaction exists
-                if (!transactions[txnId]) {
-                    throw new Error(`Transaction ${txnId} not found`);
-                }
-
-                // 4. Update transaction status
-                transactions[txnId] = {
-                    ...transactions[txnId],
-                    status: 'approved',
-                    approvedBy: 'admin',
-                    approvedAt: new Date().toISOString(),
-                    timestamp: new Date().toISOString()
-                };
-                logDebug("Transaction updated locally");
-
-                // 5. Save back to GitHub
-                logDebug("Saving to GitHub...");
-                const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+        async function updateStatus(txnId, status) {
+            try {
+                // Get current gist
+                const gistResponse = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                const gistData = await gistResponse.json();
+                const transactions = JSON.parse(gistData.files['transactions.json'].content);
+                
+                // Update status
+                transactions[txnId].status = status;
+                transactions[txnId].processedAt = new Date().toISOString();
+                
+                // Save back to gist
+                await fetch(`https://api.github.com/gists/${GIST_ID}`, {
                     method: 'PATCH',
                     headers: {
-                        'Authorization': `token ${GIST_TOKEN}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/vnd.github.v3+json'
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        description: `Approved transaction ${txnId}`,
                         files: {
-                            "transactions.json": {
+                            'transactions.json': {
                                 content: JSON.stringify(transactions, null, 2)
                             }
                         }
                     })
                 });
-
-                if (!updateRes.ok) {
-                    const error = await updateRes.json();
-                    throw new Error(`GitHub Error: ${error.message}`);
-                }
-
-                logDebug("Approval successful!");
-                return true;
+                
+                alert(`Transaction ${txnId} ${status}`);
+                loadTransactions();
+                
             } catch (error) {
-                logDebug(`Approval failed: ${error.message}`);
-                return false;
+                console.error('Error updating status:', error);
+                alert('Failed to update status');
             }
         }
 
-        // Main execution
-        const urlParams = new URLSearchParams(window.location.search);
-        const txnId = urlParams.get('txn');
-
-        if (txnId) {
-            document.getElementById('statusMessage').textContent = `Processing approval for: ${txnId}`;
-            
-            approveTransaction(txnId).then(success => {
-                document.getElementById('loader').style.display = 'none';
-                
-                if (success) {
-                    document.getElementById('statusMessage').innerHTML = `
-                        <h3>✓ Approval Successful</h3>
-                        <p>Transaction ${txnId} has been approved</p>
-                        <p>This window will close automatically</p>
-                    `;
-                    setTimeout(() => window.close(), 3000);
-                } else {
-                    document.getElementById('statusMessage').innerHTML = `
-                        <h3>❌ Approval Failed</h3>
-                        <p>Failed to approve transaction ${txnId}</p>
-                        <p>Check debug console for details</p>
-                        <button onclick="location.reload()">Try Again</button>
-                    `;
-                }
-            });
-        } else {
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('statusMessage').innerHTML = `
-                <h3>❌ Error</h3>
-                <p>No transaction ID provided</p>
-                <p>Close this window and try again</p>
-            `;
-            logDebug("Error: No transaction ID in URL");
-        }
+        // Load transactions on page load
+        window.onload = loadTransactions;
     </script>
 </body>
 </html>
