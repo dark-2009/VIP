@@ -2,45 +2,132 @@
 <html>
 <head>
     <title>Rejection Handler</title>
+    <style>
+        body { 
+            background: #000;
+            color: #f00;
+            font-family: monospace;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loader {
+            border: 4px solid #f003;
+            border-top: 4px solid #f00;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #f00;
+            background: #000;
+        }
+    </style>
     <script>
     const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
     const GIST_TOKEN = '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';
     
     async function rejectTransaction(txnId) {
-        const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `token ${GIST_TOKEN}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                files: {
-                    "transactions.json": {
-                        content: JSON.stringify({
-                            [txnId]: {
-                                status: 'rejected',
-                                timestamp: new Date().toISOString()
-                            }
-                        })
+        try {
+            // Get current state
+            const gistRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+            if (!gistRes.ok) throw new Error('Failed to fetch Gist');
+            
+            const gistData = await gistRes.json();
+            const transactions = JSON.parse(gistData.files['transactions.json'].content);
+
+            // Verify transaction exists
+            if (!transactions[txnId]) {
+                throw new Error('Transaction not found');
+            }
+
+            // Update transaction
+            transactions[txnId] = {
+                ...transactions[txnId],
+                status: 'rejected',
+                timestamp: new Date().toISOString(),
+                rejectedBy: 'admin',
+                rejectedAt: new Date().toISOString()
+            };
+
+            // Save updated state
+            const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `token ${GIST_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    files: {
+                        "transactions.json": {
+                            content: JSON.stringify(transactions)
+                        }
                     }
-                }
-            })
-        });
-        return await response.json();
+                })
+            });
+
+            if (!updateRes.ok) throw new Error('Failed to update Gist');
+            return true;
+        } catch (error) {
+            console.error('Rejection error:', error);
+            return false;
+        }
     }
 
+    // Execution flow
     const urlParams = new URLSearchParams(window.location.search);
     const txnId = urlParams.get('txn');
-    
+
     if (txnId) {
-        rejectTransaction(txnId).then(() => {
-            alert(`Transaction ${txnId} rejected!`);
-            window.close();
+        document.body.innerHTML = `
+            <h1>Rejecting Transaction</h1>
+            <div class="loader"></div>
+            <div class="status">Processing rejection for: ${txnId}</div>
+        `;
+
+        rejectTransaction(txnId).then(success => {
+            if (success) {
+                document.body.innerHTML = `
+                    <h1>✓ Rejection Successful</h1>
+                    <div class="status">
+                        Transaction ${txnId} rejected!<br>
+                        You may close this window.
+                    </div>
+                `;
+                setTimeout(() => window.close(), 3000);
+            } else {
+                document.body.innerHTML = `
+                    <h1>❌ Rejection Failed</h1>
+                    <div class="status">
+                        Failed to reject transaction ${txnId}.<br>
+                        Please try again.
+                    </div>
+                    <button onclick="location.reload()" style="
+                        background: #f00;
+                        color: #000;
+                        border: none;
+                        padding: 10px 20px;
+                        margin-top: 20px;
+                        cursor: pointer;
+                    ">Retry</button>
+                `;
+            }
         });
+    } else {
+        document.body.innerHTML = `
+            <h1>Error</h1>
+            <div class="status">No transaction ID provided</div>
+        `;
     }
     </script>
 </head>
 <body>
-    <h1>Rejecting transaction...</h1>
 </body>
 </html>
