@@ -44,6 +44,15 @@
             overflow-y: auto;
             width: 300px;
         }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -59,7 +68,7 @@
 
     <script>
         const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
-        const GIST_TOKEN = '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';
+        const GIST_TOKEN = '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';
 
         // Debug logging
         function logDebug(message) {
@@ -170,10 +179,7 @@
                         <h3>❌ Approval Failed</h3>
                         <p>Failed to approve transaction ${txnId}</p>
                         <p>Check debug console for details</p>
-                        <button onclick="location.reload()" 
-                                style="background:#0f0;color:#000;border:none;padding:8px 16px;margin-top:10px;cursor:pointer;">
-                            Try Again
-                        </button>
+                        <button onclick="location.reload()">Try Again</button>
                     `;
                 }
             });
