@@ -326,7 +326,7 @@
             }
         }
 
-        // Check approval status (manual approval only) - RESTORED ORIGINAL VERSION
+        // Fixed Check approval status function
         async function checkApprovalStatus() {
             const checkBtn = document.getElementById("checkApprovalBtn");
             const statusText = document.getElementById("statusText");
@@ -340,19 +340,33 @@
                 const now = new Date();
                 lastCheckedEl.textContent = now.toLocaleTimeString();
                 updateTransaction({ lastChecked: now.toISOString() });
+
+                // Actually check the transaction status
+                const status = await checkTransactionStatus(currentTransaction.txnId);
                 
-                // In a real implementation, you would check your backend here
-                // For this demo, it will always show pending unless manually approved
-                statusText.textContent = "Pending approval";
-                statusText.style.color = "yellow";
-                
-                // Simulate checking with server (replace with actual API call)
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                alert("Admin has not approved yet. Please wait for manual approval.");
-                
+                if (status.status === 'approved') {
+                    updateTransaction({ status: 'approved' });
+                    statusText.textContent = "Approved";
+                    statusText.style.color = "#0f0";
+                    setTimeout(() => {
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        document.getElementById("contactContainer").classList.remove('hidden');
+                    }, 1500);
+                } else if (status.status === 'rejected') {
+                    updateTransaction({ status: 'rejected' });
+                    statusText.textContent = "Rejected";
+                    statusText.style.color = "red";
+                    alert('❌ Payment was rejected by admin');
+                    localStorage.removeItem(storageKey);
+                    document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                    document.getElementById("keyContainer").classList.remove('hidden');
+                } else {
+                    statusText.textContent = "Pending approval";
+                    statusText.style.color = "yellow";
+                    alert("Admin has not approved yet. Please wait for manual approval.");
+                }
             } catch (error) {
-                console.error("Check failed:", error);
+                console.error("Approval check failed:", error);
                 alert("Error checking status. Please try again.");
             } finally {
                 checkBtn.disabled = false;
@@ -361,7 +375,7 @@
             }
         }
 
-        // Send Telegram notification - FIXED VERSION
+        // Send Telegram notification
         async function sendTelegramNotification() {
             const message = `🔄 New Payment Verification%0A` +
                          `💳 Transaction ID: ${currentTransaction.txnId}%0A` +
@@ -405,7 +419,7 @@
             return result;
         }
 
-        // Event Listeners
+        // Event Listeners (all remain exactly the same)
         document.getElementById("keyForm").addEventListener("submit", function(e) {
             e.preventDefault();
             if (document.getElementById("accessKey").value === CONFIG.ACCESS_KEY) {
