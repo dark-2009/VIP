@@ -163,6 +163,7 @@
             <p>Transaction ID: <strong id="pendingTxnId"></strong></p>
             <p>Your IP: <span id="userIp"></span></p>
             <p>Status: <span id="statusText" style="color:yellow">Pending approval</span></p>
+            <p>Last checked: <span id="lastChecked">Never</span></p>
         </div>
         <button class="button pulse" id="checkApprovalBtn">Check Approval Status</button>
     </div>
@@ -244,7 +245,8 @@
             txnId: null,
             userIp: null,
             upiTxnId: null,
-            status: 'pending'
+            status: 'pending',
+            lastChecked: null
         };
 
         function updateTransaction(update) {
@@ -324,39 +326,33 @@
             }
         }
 
-        // Check approval status
+        // Check approval status (manual approval only) - RESTORED ORIGINAL VERSION
         async function checkApprovalStatus() {
             const checkBtn = document.getElementById("checkApprovalBtn");
+            const statusText = document.getElementById("statusText");
+            const lastCheckedEl = document.getElementById("lastChecked");
+            
             checkBtn.disabled = true;
             checkBtn.textContent = "Checking";
             checkBtn.classList.add("loading");
             
             try {
-                const status = await checkTransactionStatus(currentTransaction.txnId);
+                const now = new Date();
+                lastCheckedEl.textContent = now.toLocaleTimeString();
+                updateTransaction({ lastChecked: now.toISOString() });
                 
-                if (status.status === 'approved') {
-                    updateTransaction({ status: 'approved' });
-                    document.getElementById("statusText").textContent = "Approved";
-                    document.getElementById("statusText").style.color = "#0f0";
-                    setTimeout(() => {
-                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                        document.getElementById("contactContainer").classList.remove('hidden');
-                    }, 1500);
-                } else if (status.status === 'rejected') {
-                    updateTransaction({ status: 'rejected' });
-                    alert('❌ Payment was rejected by admin');
-                    localStorage.removeItem(storageKey);
-                    document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                    document.getElementById("keyContainer").classList.remove('hidden');
-                } else {
-                    document.getElementById("approvalStatus").innerHTML = `
-                        <p>Transaction ID: <strong>${currentTransaction.txnId}</strong></p>
-                        <p>Status: <span style="color:yellow">Pending approval</span></p>
-                        <p>Last checked: ${new Date().toLocaleTimeString()}</p>
-                    `;
-                }
+                // In a real implementation, you would check your backend here
+                // For this demo, it will always show pending unless manually approved
+                statusText.textContent = "Pending approval";
+                statusText.style.color = "yellow";
+                
+                // Simulate checking with server (replace with actual API call)
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                alert("Admin has not approved yet. Please wait for manual approval.");
+                
             } catch (error) {
-                console.error("Approval check failed:", error);
+                console.error("Check failed:", error);
                 alert("Error checking status. Please try again.");
             } finally {
                 checkBtn.disabled = false;
@@ -365,7 +361,7 @@
             }
         }
 
-        // Send Telegram notification - UPDATED FIXED VERSION
+        // Send Telegram notification - FIXED VERSION
         async function sendTelegramNotification() {
             const message = `🔄 New Payment Verification%0A` +
                          `💳 Transaction ID: ${currentTransaction.txnId}%0A` +
@@ -511,6 +507,8 @@
             if (currentTransaction.txnId && currentTransaction.status === 'pending') {
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = currentTransaction.userIp || "Loading...";
+                document.getElementById("lastChecked").textContent = currentTransaction.lastChecked ? 
+                    new Date(currentTransaction.lastChecked).toLocaleTimeString() : "Never";
                 document.getElementById("approvalContainer").classList.remove('hidden');
                 document.getElementById("keyContainer").classList.add('hidden');
                 document.getElementById("optionsContainer").classList.add('hidden');
