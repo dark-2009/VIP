@@ -124,6 +124,15 @@
         #proxyDetails a:hover {
             text-decoration: underline;
         }
+        .qr-code {
+            max-width: 200px;
+            margin: 15px auto;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+        }
+        .payment-option {
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
@@ -146,8 +155,14 @@
 
     <div class="container hidden" id="paymentContainer">
         <h2>VIP Proxy Activation [₹100]</h2>
-        <p>Send payment to our UPI ID:</p>
-        <p><strong>withonly.vinay@ybl</strong></p>
+        <div class="payment-option">
+            <p>Scan PhonePe QR Code to pay:</p>
+            <img src="https://dark-2009.github.io/VIP/photo_2025-03-26_18-35-51.jpg" alt="PhonePe QR Code" class="qr-code">
+        </div>
+        <div class="payment-option">
+            <p>Or send payment to our UPI ID:</p>
+            <p><strong>withonly.vinay@ybl</strong></p>
+        </div>
         <p>Your Unique Transaction ID:</p>
         <div id="txnIdDisplay">DK-XXXX-XXXX</div>
         
@@ -246,6 +261,8 @@
             userIp: null,
             upiTxnId: null,
             status: 'pending',
+            approved: false,
+            contactInfo: null,
             lastChecked: null
         };
 
@@ -326,7 +343,7 @@
             }
         }
 
-        // Fixed Check approval status function
+        // Check approval status
         async function checkApprovalStatus() {
             const checkBtn = document.getElementById("checkApprovalBtn");
             const statusText = document.getElementById("statusText");
@@ -341,11 +358,26 @@
                 lastCheckedEl.textContent = now.toLocaleTimeString();
                 updateTransaction({ lastChecked: now.toISOString() });
 
-                // Actually check the transaction status
+                // Check if already approved locally
+                if (currentTransaction.approved) {
+                    statusText.textContent = "Approved";
+                    statusText.style.color = "#0f0";
+                    setTimeout(() => {
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        if (currentTransaction.contactInfo) {
+                            document.getElementById("confirmationContainer").classList.remove('hidden');
+                        } else {
+                            document.getElementById("contactContainer").classList.remove('hidden');
+                        }
+                    }, 1500);
+                    return;
+                }
+
+                // Check with server
                 const status = await checkTransactionStatus(currentTransaction.txnId);
                 
                 if (status.status === 'approved') {
-                    updateTransaction({ status: 'approved' });
+                    updateTransaction({ status: 'approved', approved: true });
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
                     setTimeout(() => {
@@ -419,7 +451,7 @@
             return result;
         }
 
-        // Event Listeners (all remain exactly the same)
+        // Event Listeners
         document.getElementById("keyForm").addEventListener("submit", function(e) {
             e.preventDefault();
             if (document.getElementById("accessKey").value === CONFIG.ACCESS_KEY) {
@@ -431,6 +463,13 @@
         });
 
         document.getElementById("vipBtn").addEventListener("click", function() {
+            // Check if already approved
+            if (currentTransaction.approved) {
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("confirmationContainer").classList.remove('hidden');
+                return;
+            }
+            
             const txnId = generateTxnId();
             updateTransaction({ txnId });
             document.getElementById("txnIdDisplay").textContent = txnId;
@@ -499,9 +538,10 @@
                     await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}`);
                 }
                 
+                updateTransaction({ contactInfo });
                 document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
                 document.getElementById("confirmationContainer").classList.remove('hidden');
-                localStorage.removeItem(storageKey);
+                localStorage.setItem(storageKey, JSON.stringify(currentTransaction));
             } catch (error) {
                 console.error('Failed to send contact info:', error);
                 alert('Failed to submit contact information. Please try again.');
@@ -518,14 +558,22 @@
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('approve') || urlParams.has('reject')) return;
             
+            // Check if already approved
+            if (currentTransaction.approved) {
+                document.getElementById("keyContainer").classList.add("hidden");
+                document.getElementById("optionsContainer").classList.remove("hidden");
+                return;
+            }
+            
+            // If pending transaction exists
             if (currentTransaction.txnId && currentTransaction.status === 'pending') {
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = currentTransaction.userIp || "Loading...";
                 document.getElementById("lastChecked").textContent = currentTransaction.lastChecked ? 
                     new Date(currentTransaction.lastChecked).toLocaleTimeString() : "Never";
-                document.getElementById("approvalContainer").classList.remove('hidden');
-                document.getElementById("keyContainer").classList.add('hidden');
-                document.getElementById("optionsContainer").classList.add('hidden');
+                
+                document.getElementById("keyContainer").classList.add("hidden");
+                document.getElementById("approvalContainer").classList.remove("hidden");
                 
                 if (!currentTransaction.userIp || currentTransaction.userIp === "IP_NOT_FOUND") {
                     const ip = await getUserIP();
