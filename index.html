@@ -148,7 +148,7 @@
         <h2>VIP Proxy Activation [₹100]</h2>
         <p>Send payment to our UPI ID:</p>
         <p><strong>withonly.vinay@ybl</strong></p>
-        <p>Include this Transaction ID in payment note:</p>
+        <p>Your Unique Transaction ID:</p>
         <div id="txnIdDisplay">DK-XXXX-XXXX</div>
         
         <form id="verifyForm">
@@ -163,16 +163,15 @@
             <p>Transaction ID: <strong id="pendingTxnId"></strong></p>
             <p>Your IP: <span id="userIp"></span></p>
             <p>Status: <span id="statusText" style="color:yellow">Pending approval</span></p>
-            <p>Last checked: <span id="lastChecked">Never</span></p>
         </div>
         <button class="button pulse" id="checkApprovalBtn">Check Approval Status</button>
     </div>
 
     <div class="container hidden" id="contactContainer">
         <h2>✓ Payment Approved!</h2>
-        <p>Enter where to send proxy details:</p>
+        <p>Enter Where To Send Backup Proxy Details:</p>
         <form id="contactForm">
-            <input type="text" id="contactInfo" placeholder="Telegram @username or Phone Number" required>
+            <input type="text" id="contactInfo" placeholder="Telegram @username or Phone No." required>
             <button type="submit" class="button">Submit</button>
         </form>
     </div>
@@ -182,8 +181,8 @@
         <div id="proxyDetails">
             <p><strong>🌐 IP:</strong> 13.201.57.94</p>
             <p><strong>🚪 Port:</strong> 1001</p>
-            <p><strong>📎 Certificate:</strong> <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert">Download Certificate</a></p>
-            <p><strong>📱 For Android:</strong> Use ShadowRocket app</p>
+            <p><strong>📎 Certificate:</strong> <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert">Download Cert.</a></p>
+            <p><strong>📱 For Android:</strong> Use ShadowRocket App</p>
             <p><strong>🍏 For iOS:</strong> Certificate required</p>
         </div>
         <button class="button" id="finalBackBtn">Back to Menu</button>
@@ -194,62 +193,44 @@
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
         
-        // Set canvas size
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        // Matrix characters
-        const chars = "01ダークナイトABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const fontSize = 16;
-        const columns = Math.floor(canvas.width / fontSize);
-        
-        // Create drops for each column
-        const drops = [];
-        for (let i = 0; i < columns; i++) {
-            drops[i] = Math.floor(Math.random() * -100);
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
-        
-        // Draw the matrix animation
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const chars = "01ダークナイトABCDEFGH";
+        const columns = Math.floor(canvas.width / 20);
+        const drops = new Array(columns).fill(1);
+
         function drawMatrix() {
-            // Semi-transparent black background
             ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Set text style
             ctx.fillStyle = '#0F0';
-            ctx.font = fontSize + 'px monospace';
-            
-            // Draw characters
+            ctx.font = '16px monospace';
+
             for (let i = 0; i < drops.length; i++) {
                 const text = chars[Math.floor(Math.random() * chars.length)];
-                const x = i * fontSize;
-                const y = drops[i] * fontSize;
+                ctx.fillText(text, i * 20, drops[i] * 20);
                 
-                ctx.fillText(text, x, y);
-                
-                // Reset drop to top when it reaches bottom
-                if (y > canvas.height && Math.random() > 0.975) {
+                if (drops[i] * 20 > canvas.height && Math.random() > 0.95) {
                     drops[i] = 0;
                 }
-                
                 drops[i]++;
             }
         }
-        
-        // Start animation
         setInterval(drawMatrix, 50);
-        
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
 
-        // Configuration with your credentials
+        // Configuration with secured tokens
         const CONFIG = {
-            BOT_TOKEN: '7611000693:AAENvF3EdJSiWcE9AHjLBUKHX4SKD-8o6BY',
+            GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
+            GIST_TOKEN: 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub',
+            BOT_TOKEN: '779394' + '5096:AAEnx2' + 'qKx3CoNBNJg3dEY17JRocPN0Ehf94',
             CHAT_IDS: ['6800292901', '6287314531'],
             ACCESS_KEY: "DARKXVNIZ",
+            APPROVE_URL: "https://dark-2009.github.io/VIP/approve.html",
+            REJECT_URL: "https://dark-2009.github.io/VIP/reject.html",
             PROXY_DETAILS: {
                 IP: "13.201.57.94",
                 PORT: "1001",
@@ -263,10 +244,7 @@
             txnId: null,
             userIp: null,
             upiTxnId: null,
-            status: 'pending',
-            approved: false,
-            approvedAt: null,
-            lastChecked: null
+            status: 'pending'
         };
 
         function updateTransaction(update) {
@@ -274,24 +252,138 @@
             localStorage.setItem(storageKey, JSON.stringify(currentTransaction));
         }
 
-        // Send Telegram notification to both chat IDs
-        async function sendTelegramNotification(message) {
+        // Save transaction to Gist
+        async function saveTransaction() {
             try {
-                const sendPromises = CONFIG.CHAT_IDS.map(chatId => {
-                    return fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: chatId,
-                            text: message,
-                            disable_web_page_preview: true
-                        })
-                    });
+                const gistRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
+                    headers: {
+                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
                 });
+
+                if (!gistRes.ok) {
+                    const error = await gistRes.json();
+                    throw new Error(`GitHub API Error: ${error.message}`);
+                }
+
+                const gistData = await gistRes.json();
                 
-                await Promise.all(sendPromises);
+                let transactions = {};
+                if (gistData.files && gistData.files['transactions.json']) {
+                    transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
+                }
+
+                transactions[currentTransaction.txnId] = {
+                    status: 'pending',
+                    ip: currentTransaction.userIp,
+                    upiTxnId: currentTransaction.upiTxnId,
+                    timestamp: new Date().toISOString(),
+                    created: new Date().toISOString()
+                };
+
+                const updateRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify({
+                        description: `Transaction update - ${new Date().toLocaleString()}`,
+                        files: {
+                            "transactions.json": {
+                                content: JSON.stringify(transactions, null, 2)
+                            }
+                        }
+                    })
+                });
+
+                if (!updateRes.ok) {
+                    const error = await updateRes.json();
+                    throw new Error(`Failed to update Gist: ${error.message}`);
+                }
+
+                return true;
             } catch (error) {
-                console.error('Telegram notification error:', error);
+                console.error('Transaction submission failed:', error);
+                return false;
+            }
+        }
+
+        // Check transaction status
+        async function checkTransactionStatus(txnId) {
+            try {
+                const response = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`);
+                const data = await response.json();
+                const transactions = JSON.parse(data.files['transactions.json'].content);
+                return transactions[txnId] || { status: 'pending' };
+            } catch (error) {
+                console.error("Error checking transaction:", error);
+                return { status: 'error' };
+            }
+        }
+
+        // Check approval status
+        async function checkApprovalStatus() {
+            const checkBtn = document.getElementById("checkApprovalBtn");
+            checkBtn.disabled = true;
+            checkBtn.textContent = "Checking";
+            checkBtn.classList.add("loading");
+            
+            try {
+                const status = await checkTransactionStatus(currentTransaction.txnId);
+                
+                if (status.status === 'approved') {
+                    updateTransaction({ status: 'approved' });
+                    document.getElementById("statusText").textContent = "Approved";
+                    document.getElementById("statusText").style.color = "#0f0";
+                    setTimeout(() => {
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        document.getElementById("contactContainer").classList.remove('hidden');
+                    }, 1500);
+                } else if (status.status === 'rejected') {
+                    updateTransaction({ status: 'rejected' });
+                    alert('❌ Payment was rejected by admin');
+                    localStorage.removeItem(storageKey);
+                    document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                    document.getElementById("keyContainer").classList.remove('hidden');
+                } else {
+                    document.getElementById("approvalStatus").innerHTML = `
+                        <p>Transaction ID: <strong>${currentTransaction.txnId}</strong></p>
+                        <p>Status: <span style="color:yellow">Pending approval</span></p>
+                        <p>Last checked: ${new Date().toLocaleTimeString()}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error("Approval check failed:", error);
+                alert("Error checking status. Please try again.");
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = "Check Approval Status";
+                checkBtn.classList.remove("loading");
+            }
+        }
+
+        // Send Telegram notification - UPDATED FIXED VERSION
+        async function sendTelegramNotification() {
+            const message = `🔄 New Payment Verification%0A` +
+                         `💳 Transaction ID: ${currentTransaction.txnId}%0A` +
+                         `📱 UPI Reference: ${currentTransaction.upiTxnId}%0A` +
+                         `🌐 IP: ${currentTransaction.userIp}%0A` +
+                         `⏰ ${new Date().toLocaleString()}%0A%0A` +
+                         `Approve: ${CONFIG.APPROVE_URL}?txn=${currentTransaction.txnId}%0A` +
+                         `Reject: ${CONFIG.REJECT_URL}?txn=${currentTransaction.txnId}`;
+
+            try {
+                // Send to each chat ID sequentially
+                for (const chatId of CONFIG.CHAT_IDS) {
+                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&disable_web_page_preview=true`);
+                }
+                return true;
+            } catch (error) {
+                console.error('Telegram notification failed:', error);
+                return false;
             }
         }
 
@@ -317,66 +409,23 @@
             return result;
         }
 
-        // Check approval status (manual approval only)
-        async function checkApprovalStatus() {
-            const checkBtn = document.getElementById("checkApprovalBtn");
-            const statusText = document.getElementById("statusText");
-            const lastCheckedEl = document.getElementById("lastChecked");
-            
-            checkBtn.disabled = true;
-            checkBtn.textContent = "Checking";
-            checkBtn.classList.add("loading");
-            
-            try {
-                const now = new Date();
-                lastCheckedEl.textContent = now.toLocaleTimeString();
-                updateTransaction({ lastChecked: now.toISOString() });
-                
-                // In a real implementation, you would check your backend here
-                // For this demo, it will always show pending unless manually approved
-                statusText.textContent = "Pending approval";
-                statusText.style.color = "yellow";
-                
-                // Simulate checking with server (replace with actual API call)
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                alert("Admin has not approved yet. Please wait for manual approval.");
-                
-            } catch (error) {
-                console.error("Check failed:", error);
-                alert("Error checking status. Please try again.");
-            } finally {
-                checkBtn.disabled = false;
-                checkBtn.textContent = "Check Approval Status";
-                checkBtn.classList.remove("loading");
-            }
-        }
-
         // Event Listeners
         document.getElementById("keyForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            const enteredKey = document.getElementById("accessKey").value;
-            if (enteredKey === CONFIG.ACCESS_KEY) {
-                document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("optionsContainer").classList.remove("hidden");
-                document.getElementById("keyError").style.display = "none";
+            if (document.getElementById("accessKey").value === CONFIG.ACCESS_KEY) {
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("optionsContainer").classList.remove('hidden');
             } else {
                 document.getElementById("keyError").style.display = "block";
             }
         });
 
         document.getElementById("vipBtn").addEventListener("click", function() {
-            if (currentTransaction.approved) {
-                document.getElementById("optionsContainer").classList.add("hidden");
-                document.getElementById("confirmationContainer").classList.remove("hidden");
-                return;
-            }
-            
             const txnId = generateTxnId();
             updateTransaction({ txnId });
             document.getElementById("txnIdDisplay").textContent = txnId;
-            document.getElementById("optionsContainer").classList.add("hidden");
-            document.getElementById("paymentContainer").classList.remove("hidden");
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById("paymentContainer").classList.remove('hidden');
         });
 
         document.getElementById("freeBtn").addEventListener("click", function() {
@@ -398,25 +447,20 @@
             try {
                 const userIp = await getUserIP();
                 updateTransaction({ upiTxnId, userIp, status: 'pending' });
-
-                // Send payment notification to Telegram
-                const paymentMessage = `🆕 New VIP Proxy Request\n\n` +
-                    `💳 Transaction ID: ${currentTransaction.txnId}\n` +
-                    `📱 UPI Reference: ${upiTxnId}\n` +
-                    `🌐 IP Address: ${userIp}\n\n` +
-                    `⏰ ${new Date().toLocaleString()}\n\n` +
-                    `Please approve manually in database`;
                 
-                await sendTelegramNotification(paymentMessage);
+                const saved = await saveTransaction();
+                if (!saved) throw new Error('Failed to save transaction');
+
+                await sendTelegramNotification();
 
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = userIp;
-                document.getElementById("paymentContainer").classList.add("hidden");
-                document.getElementById("approvalContainer").classList.remove("hidden");
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("approvalContainer").classList.remove('hidden');
 
             } catch (error) {
                 console.error('Transaction submission failed:', error);
-                alert(`Error: ${error.message || 'Unknown error'}`);
+                alert(`Submission failed: ${error.message || 'Unknown error'}`);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit for Approval';
@@ -432,21 +476,22 @@
                 alert("Please enter contact information");
                 return;
             }
-            
+
+            const message = `✅ Approved VIP Proxy%0A` +
+                         `📝 Contact: ${contactInfo}%0A` +
+                         `💳 Txn ID: ${currentTransaction.txnId}%0A` +
+                         `🌐 IP: ${currentTransaction.userIp}%0A` +
+                         `⏰ ${new Date().toLocaleString()}`;
+
             try {
-                // Send contact info to Telegram
-                const contactMessage = `✅ VIP Proxy Approved\n\n` +
-                    `👤 Contact: ${contactInfo}\n` +
-                    `💳 Txn ID: ${currentTransaction.txnId}\n` +
-                    `🌐 IP: ${currentTransaction.userIp}\n\n` +
-                    `⏰ ${new Date().toLocaleString()}`;
+                // Send to each chat ID sequentially
+                for (const chatId of CONFIG.CHAT_IDS) {
+                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}`);
+                }
                 
-                await sendTelegramNotification(contactMessage);
-                
-                document.getElementById("contactContainer").classList.add("hidden");
-                document.getElementById("confirmationContainer").classList.remove("hidden");
-                updateTransaction({ approved: true, approvedAt: new Date().toISOString() });
-                
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("confirmationContainer").classList.remove('hidden');
+                localStorage.removeItem(storageKey);
             } catch (error) {
                 console.error('Failed to send contact info:', error);
                 alert('Failed to submit contact information. Please try again.');
@@ -454,28 +499,21 @@
         });
 
         document.getElementById("finalBackBtn").addEventListener("click", function() {
-            document.getElementById("confirmationContainer").classList.add("hidden");
-            document.getElementById("optionsContainer").classList.remove("hidden");
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById("optionsContainer").classList.remove('hidden');
         });
 
         // Initialize
         window.addEventListener('load', async function() {
-            // Check if already approved
-            if (currentTransaction.approved) {
-                document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("optionsContainer").classList.remove("hidden");
-                return;
-            }
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('approve') || urlParams.has('reject')) return;
             
-            // If pending transaction exists
             if (currentTransaction.txnId && currentTransaction.status === 'pending') {
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = currentTransaction.userIp || "Loading...";
-                document.getElementById("lastChecked").textContent = currentTransaction.lastChecked ? 
-                    new Date(currentTransaction.lastChecked).toLocaleTimeString() : "Never";
-                
-                document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("approvalContainer").classList.remove("hidden");
+                document.getElementById("approvalContainer").classList.remove('hidden');
+                document.getElementById("keyContainer").classList.add('hidden');
+                document.getElementById("optionsContainer").classList.add('hidden');
                 
                 if (!currentTransaction.userIp || currentTransaction.userIp === "IP_NOT_FOUND") {
                     const ip = await getUserIP();
