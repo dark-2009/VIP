@@ -129,6 +129,7 @@
 <body>
     <canvas id="matrix"></canvas>
     
+    <!-- Key Asking Section -->
     <div class="container" id="keyContainer">
         <h2>🔒 Secure Access</h2>
         <form id="keyForm">
@@ -148,7 +149,7 @@
         <h2>VIP Proxy Activation [₹100]</h2>
         <p>Send payment to our UPI ID:</p>
         <p><strong>withonly.vinay@ybl</strong></p>
-        <p>Your Unique Transaction ID:</p>
+        <p>Include this Transaction ID in payment note:</p>
         <div id="txnIdDisplay">DK-XXXX-XXXX</div>
         
         <form id="verifyForm">
@@ -169,9 +170,9 @@
 
     <div class="container hidden" id="contactContainer">
         <h2>✓ Payment Approved!</h2>
-        <p>Enter Where To Send Backup Proxy Details:</p>
+        <p>Enter where to send proxy details:</p>
         <form id="contactForm">
-            <input type="text" id="contactInfo" placeholder="Telegram @username or Phone No." required>
+            <input type="text" id="contactInfo" placeholder="Telegram @username or Phone Number" required>
             <button type="submit" class="button">Submit</button>
         </form>
     </div>
@@ -181,8 +182,8 @@
         <div id="proxyDetails">
             <p><strong>🌐 IP:</strong> 13.201.57.94</p>
             <p><strong>🚪 Port:</strong> 1001</p>
-            <p><strong>📎 Certificate:</strong> <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert">Download Cert.</a></p>
-            <p><strong>📱 For Android:</strong> Use ShadowRocket App</p>
+            <p><strong>📎 Certificate:</strong> <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert">Download Certificate</a></p>
+            <p><strong>📱 For Android:</strong> Use ShadowRocket app</p>
             <p><strong>🍏 For iOS:</strong> Certificate required</p>
         </div>
         <button class="button" id="finalBackBtn">Back to Menu</button>
@@ -244,7 +245,9 @@
             txnId: null,
             userIp: null,
             upiTxnId: null,
-            status: 'pending'
+            status: 'pending',
+            approved: false,
+            approvedAt: null
         };
 
         function updateTransaction(update) {
@@ -335,7 +338,11 @@
                 const status = await checkTransactionStatus(currentTransaction.txnId);
                 
                 if (status.status === 'approved') {
-                    updateTransaction({ status: 'approved' });
+                    updateTransaction({ 
+                        status: 'approved',
+                        approved: true,
+                        approvedAt: new Date().toISOString()
+                    });
                     document.getElementById("statusText").textContent = "Approved";
                     document.getElementById("statusText").style.color = "#0f0";
                     setTimeout(() => {
@@ -413,15 +420,24 @@
         // Event Listeners
         document.getElementById("keyForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            if (document.getElementById("accessKey").value === CONFIG.ACCESS_KEY) {
+            const enteredKey = document.getElementById("accessKey").value;
+            if (enteredKey === CONFIG.ACCESS_KEY) {
                 document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
                 document.getElementById("optionsContainer").classList.remove('hidden');
+                document.getElementById("keyError").style.display = "none";
             } else {
                 document.getElementById("keyError").style.display = "block";
             }
         });
 
         document.getElementById("vipBtn").addEventListener("click", function() {
+            // If already approved, show proxy details directly
+            if (currentTransaction.approved) {
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("confirmationContainer").classList.remove('hidden');
+                return;
+            }
+            
             const txnId = generateTxnId();
             updateTransaction({ txnId });
             document.getElementById("txnIdDisplay").textContent = txnId;
@@ -498,7 +514,7 @@
                 
                 document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
                 document.getElementById("confirmationContainer").classList.remove('hidden');
-                localStorage.removeItem(storageKey);
+                updateTransaction({ approved: true, approvedAt: new Date().toISOString() });
             } catch (error) {
                 console.error('Failed to send contact info:', error);
                 alert('Failed to submit contact information. Please try again.');
@@ -514,6 +530,13 @@
         window.addEventListener('load', async function() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('approve') || urlParams.has('reject')) return;
+            
+            // Check if already approved
+            if (currentTransaction.approved) {
+                document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                document.getElementById("optionsContainer").classList.remove('hidden');
+                return;
+            }
             
             if (currentTransaction.txnId && currentTransaction.status === 'pending') {
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
