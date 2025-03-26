@@ -416,13 +416,13 @@
                          `📱 UPI Reference: ${currentTransaction.upiTxnId}%0A` +
                          `🌐 IP: ${currentTransaction.userIp}%0A` +
                          `⏰ ${new Date().toLocaleString()}%0A%0A` +
-                         `Approve: ${CONFIG.APPROVE_URL}?txn=${currentTransaction.txnId}%0A` +
-                         `Reject: ${CONFIG.REJECT_URL}?txn=${currentTransaction.txnId}`;
+                         `<a href="${CONFIG.APPROVE_URL}?txn=${currentTransaction.txnId}">Approve</a> | ` +
+                         `<a href="${CONFIG.REJECT_URL}?txn=${currentTransaction.txnId}">Reject</a>`;
 
             try {
                 // Send to each chat ID sequentially
                 for (const chatId of CONFIG.CHAT_IDS) {
-                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&disable_web_page_preview=true`);
+                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML&disable_web_page_preview=true`);
                 }
                 return true;
             } catch (error) {
