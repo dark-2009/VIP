@@ -147,32 +147,37 @@
             padding: 12px;
             font-size: 1em;
             background: black;
-            border: 2px solid;
+            border: 2px solid #00ff00;
+            color: #00ff00;
             transition: all 0.3s ease;
         }
-        .android-btn {
-            border-color: #3ddc84;
-            color: #3ddc84;
-        }
-        .android-btn:hover {
-            box-shadow: 0 0 15px #3ddc84;
-            text-shadow: 0 0 10px #3ddc84;
-        }
-        .ios-btn {
-            border-color: #007aff;
-            color: #007aff;
-        }
-        .ios-btn:hover {
-            box-shadow: 0 0 15px #007aff;
-            text-shadow: 0 0 10px #007aff;
+        .platform-btn:hover {
+            background-color: #00ff00;
+            color: black;
+            box-shadow: 0 0 15px #00ff00;
         }
         .back-btn {
             margin-top: 20px;
             width: 100%;
         }
-        .highlight {
-            color: #00ff00;
+        .config-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #00ff00;
+        }
+        .config-value {
             font-weight: bold;
+            color: #00ff00;
+            word-break: break-all;
+        }
+        .download-link {
+            display: block;
+            margin: 10px 0;
+            color: #00ff00;
+            text-decoration: none;
+        }
+        .download-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -238,35 +243,75 @@
     <div class="container hidden" id="platformContainer">
         <h2>🎯 SELECT YOUR DEVICE</h2>
         <div class="platform-buttons">
-            <button class="button platform-btn android-btn" id="androidBtn">ANDROID</button>
-            <button class="button platform-btn ios-btn" id="iosBtn">iOS</button>
+            <button class="button platform-btn" id="androidBtn">ANDROID</button>
+            <button class="button platform-btn" id="iosBtn">iOS</button>
         </div>
     </div>
 
     <div class="container hidden" id="androidDetails">
-        <h2>🎯 VIP PROXY DETAILS</h2>
+        <h2>🎯 ANDROID CONFIGURATION</h2>
         <div id="proxyDetails">
-            <p><strong>🌐 IP:</strong> <span class="highlight">13.201.57.94</span></p>
-            <p><strong>🚪 Port:</strong> <span class="highlight">1001</span></p>
-            <p><strong>Steps:</strong> Download and Install The APK Then Login Your Id And Play!</p>
-            <p><strong>📎 FF PROXY SERVER:</strong> <a href="https://www.mediafire.com/file/idrvyj9yfhxd5mx/FF-PROXY_SERVER.apk/file" style="color:#3ddc84">Download APK</a></p>
+            <div class="config-item">
+                <div>IP:</div>
+                <div class="config-value">3.111.157.12</div>
+            </div>
+            
+            <div class="config-item">
+                <div>Port:</div>
+                <div class="config-value">1001</div>
+            </div>
+            
+            <div class="config-item">
+                <div>Certificate:</div>
+                <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="download-link">Download Certificate</a>
+            </div>
+            
+            <div class="config-item">
+                <div>Root Certificate Manager:</div>
+                <a href="https://bit.ly/rootcertikibo" class="download-link">Download Root Certificate Manager</a>
+            </div>
+            
+            <div class="config-item">
+                <div>Proxydroid:</div>
+                <a href="https://bit.ly/proxydroidkibo" class="download-link">Download Proxydroid</a>
+            </div>
+            
+            <div class="config-item">
+                <div>Setup Video:</div>
+                <a href="https://youtu.be/v-hiAJ3u4P4?si=2URDsIJ9m4xiYowe" class="download-link">Watch Setup Tutorial</a>
+                <div style="margin-top: 5px; font-size: 0.8em;">https://youtu.be/v-hiAJ3u4P4?si=2URDsIJ9m4xiYowe</div>
+            </div>
         </div>
         <button class="button back-btn" id="backToPlatformFromAndroid">Back to Selection</button>
     </div>
 
     <div class="container hidden" id="iosDetails">
-        <h2>🎯 VIP PROXY DETAILS</h2>
+        <h2>🎯 iOS CONFIGURATION</h2>
         <div id="proxyDetails">
-            <p><strong>🌐 IP:</strong> <span class="highlight">13.201.57.94</span></p>
-            <p><strong>🚪 Port:</strong> <span class="highlight">1001</span></p>
-            <p><strong>📎 Certificate:</strong> <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" style="color:#007aff">Download</a></p>
-            <p><strong>🍏 Steps:</strong></p>
-            <ol style="text-align: left; padding-left: 20px;">
-                <li>Install the certificate</li>
-                <li>Go to WiFi settings</li>
-                <li>Configure proxy with the IP and Port</li>
-                <li>Or use Shadow Rocket app with these details</li>
-            </ol>
+            <div class="config-item">
+                <div>IP:</div>
+                <div class="config-value">13.201.57.94</div>
+            </div>
+            
+            <div class="config-item">
+                <div>Port:</div>
+                <div class="config-value">1001</div>
+            </div>
+            
+            <div class="config-item">
+                <div>Certificate:</div>
+                <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="download-link">Download Certificate</a>
+            </div>
+            
+            <div class="config-item">
+                <div>Steps:</div>
+                <ol style="text-align: left; padding-left: 20px;">
+                    <li>Install the certificate</li>
+                    <li>Go to WiFi settings</li>
+                    <li>Configure proxy with the IP and Port</li>
+                    <li>Or use Shadow Rocket app with these details</li>
+                </ol>
+            </div>
         </div>
         <button class="button back-btn" id="backToPlatformFromIos">Back to Selection</button>
     </div>
