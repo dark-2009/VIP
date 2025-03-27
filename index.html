@@ -374,7 +374,8 @@
             status: 'pending',
             approved: false,
             contactInfo: null,
-            lastChecked: null
+            lastChecked: null,
+            serviceSelected: null // Added to track which service was selected
         };
 
         function updateTransaction(update) {
@@ -409,6 +410,7 @@
                     ip: currentTransaction.userIp,
                     upiTxnId: currentTransaction.upiTxnId,
                     contactInfo: currentTransaction.contactInfo,
+                    service: currentTransaction.serviceSelected,
                     timestamp: new Date().toISOString(),
                     created: new Date().toISOString()
                 };
@@ -474,10 +476,16 @@
                 if (currentTransaction.approved) {
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
-                    setTimeout(() => {
-                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                        document.getElementById("optionsContainer").classList.remove('hidden');
-                    }, 1500);
+                    
+                    // Direct to appropriate next step based on service selected
+                    if (currentTransaction.serviceSelected === 'VIP PROXY') {
+                        setTimeout(() => {
+                            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                            document.getElementById("platformContainer").classList.remove('hidden');
+                        }, 1500);
+                    } else {
+                        // Handle other services if needed
+                    }
                     return;
                 }
 
@@ -488,10 +496,16 @@
                     updateTransaction({ status: 'approved', approved: true });
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
-                    setTimeout(() => {
-                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                        document.getElementById("optionsContainer").classList.remove('hidden');
-                    }, 1500);
+                    
+                    // Direct to appropriate next step based on service selected
+                    if (currentTransaction.serviceSelected === 'VIP PROXY') {
+                        setTimeout(() => {
+                            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                            document.getElementById("platformContainer").classList.remove('hidden');
+                        }, 1500);
+                    } else {
+                        // Handle other services if needed
+                    }
                 } else if (status.status === 'rejected') {
                     updateTransaction({ status: 'rejected' });
                     statusText.textContent = "Rejected";
@@ -522,6 +536,7 @@
                          `📱 UPI Reference: ${currentTransaction.upiTxnId}%0A` +
                          `👤 Contact: ${currentTransaction.contactInfo}%0A` +
                          `🌐 IP: ${currentTransaction.userIp}%0A` +
+                         `🔧 Service: ${currentTransaction.serviceSelected}%0A` +
                          `⏰ ${new Date().toLocaleString()}%0A%0A` +
                          `<a href="${CONFIG.APPROVE_URL}">⚡️ AUTHORIZATION GATEWAY</a>`;
 
@@ -571,6 +586,9 @@
         });
 
         document.getElementById("vipBtn").addEventListener("click", function() {
+            // Track service selection
+            updateTransaction({ serviceSelected: 'VIP PROXY' });
+            
             // Check if already approved
             if (currentTransaction.approved) {
                 document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
@@ -601,6 +619,8 @@
         });
 
         document.getElementById("freeBtn").addEventListener("click", function() {
+            // Track service selection
+            updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
             window.location.href = "https://t.me/darkxvniz";
         });
 
@@ -670,7 +690,13 @@
             // Check if already approved
             if (currentTransaction.approved) {
                 document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("optionsContainer").classList.remove("hidden");
+                
+                // Direct to appropriate next step based on service selected
+                if (currentTransaction.serviceSelected === 'VIP PROXY') {
+                    document.getElementById("platformContainer").classList.remove("hidden");
+                } else {
+                    document.getElementById("optionsContainer").classList.remove("hidden");
+                }
                 return;
             }
             
