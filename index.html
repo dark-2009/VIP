@@ -479,12 +479,20 @@
                 lastCheckedEl.textContent = now.toLocaleTimeString();
                 updateTransaction({ lastChecked: now.toISOString() });
 
+                // Check if already approved locally
                 if (currentTransaction.approved) {
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
+                    
+                    // Show platform selection for VIP PROXY service
+                    if (currentTransaction.serviceSelected === 'VIP PROXY') {
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        document.getElementById("platformContainer").classList.remove('hidden');
+                    }
                     return;
                 }
 
+                // Check with server
                 const status = await checkTransactionStatus(currentTransaction.txnId);
                 
                 if (status.status === 'approved') {
@@ -492,11 +500,10 @@
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
                     
+                    // Show platform selection for VIP PROXY service
                     if (currentTransaction.serviceSelected === 'VIP PROXY') {
-                        setTimeout(() => {
-                            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-                            document.getElementById("platformContainer").classList.remove('hidden');
-                        }, 1500);
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        document.getElementById("platformContainer").classList.remove('hidden');
                     }
                 } else if (status.status === 'rejected') {
                     updateTransaction({ status: 'rejected' });
@@ -533,6 +540,7 @@
                          `<a href="${CONFIG.APPROVE_URL}">⚡️ AUTHORIZATION GATEWAY</a>`;
 
             try {
+                // Send to each chat ID sequentially
                 for (const chatId of CONFIG.CHAT_IDS) {
                     await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML&disable_web_page_preview=true`);
                 }
@@ -577,8 +585,10 @@
         });
 
         document.getElementById("vipBtn").addEventListener("click", function() {
+            // Track service selection
             updateTransaction({ serviceSelected: 'VIP PROXY' });
             
+            // Check if already approved
             if (currentTransaction.approved) {
                 document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
                 document.getElementById("platformContainer").classList.remove('hidden');
@@ -608,6 +618,7 @@
         });
 
         document.getElementById("freeBtn").addEventListener("click", function() {
+            // Track service selection
             updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
             window.location.href = "https://t.me/darkxvniz";
         });
@@ -649,6 +660,7 @@
 
         document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
 
+        // New event listeners for platform selection
         document.getElementById("androidBtn").addEventListener("click", function() {
             document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
             document.getElementById("androidDetails").classList.remove('hidden');
@@ -690,9 +702,11 @@
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('approve') || urlParams.has('reject')) return;
             
+            // Check if already approved
             if (currentTransaction.approved) {
                 document.getElementById("keyContainer").classList.add("hidden");
                 
+                // Direct to appropriate next step based on service selected
                 if (currentTransaction.serviceSelected === 'VIP PROXY') {
                     document.getElementById("platformContainer").classList.remove("hidden");
                 } else {
@@ -701,6 +715,7 @@
                 return;
             }
             
+            // If pending transaction exists
             if (currentTransaction.txnId && currentTransaction.status === 'pending') {
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = currentTransaction.userIp || "Loading...";
