@@ -7,7 +7,7 @@
             background: #000;
             color: #0f0;
             font-family: monospace;
-            padding: 2rem;
+            padding: 1rem;
             margin: 0;
             overflow: hidden;
         }
@@ -18,68 +18,133 @@
             z-index: -1;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: rgba(0, 0, 0, 0.8);
             padding: 20px;
             border: 1px solid #0f0;
             box-shadow: 0 0 15px #0f0;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .section-toggles {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .section-toggle {
+            background: #000;
+            border: 2px solid #0f0;
+            color: #0f0;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .section-toggle:hover {
+            background: #0f0;
+            color: #000;
+        }
+        .section-toggle.active {
+            background: #0f0;
+            color: #000;
+        }
+        .request-section {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .request-section.active {
+            display: flex;
+        }
+        .section-header {
+            text-align: center;
+            margin: 0 0 10px 0;
+            padding: 5px;
+            background: rgba(0,255,0,0.1);
+            border-bottom: 1px solid #0f0;
+            position: relative;
+        }
+        .clear-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #000;
+            border: 1px solid #f00;
+            color: #f00;
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .clear-btn:hover {
+            background: #f00;
+            color: #000;
         }
         .request-list {
-            margin-top: 2rem;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
         }
         .request-item {
             background: rgba(0, 0, 0, 0.7);
             border: 1px solid #0f0;
             border-radius: 5px;
-            padding: 1rem;
-            margin-bottom: 1rem;
+            padding: 12px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            backdrop-filter: blur(3px);
         }
         .request-info {
             flex-grow: 1;
             color: #0f0;
+            font-size: 14px;
+        }
+        .request-actions {
+            display: flex;
+            gap: 8px;
         }
         .request-actions button {
-            margin-left: 1rem;
-            transition: all 0.3s ease;
-            background: #000;
-            border: 2px solid;
+            padding: 6px 12px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
         button.approve {
-            border-color: #0f0;
+            background: #000;
+            border: 2px solid #0f0;
             color: #0f0;
         }
         button.approve:hover {
-            box-shadow: 0 0 15px #0f0;
-            text-shadow: 0 0 10px #0f0;
+            background: #0f0;
+            color: #000;
         }
         button.reject {
-            border-color: #f00;
+            background: #000;
+            border: 2px solid #f00;
             color: #f00;
         }
         button.reject:hover {
-            box-shadow: 0 0 15px #f00;
-            text-shadow: 0 0 10px #f00;
-        }
-        .status-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            text-shadow: 0 0 10px #0f0;
+            background: #f00;
+            color: #000;
         }
         .debug-console {
-            margin-top: 2rem;
-            padding: 1rem;
+            margin-top: 15px;
+            padding: 10px;
             background: rgba(0,0,0,0.7);
             border: 1px solid #0f0;
-            max-height: 200px;
+            max-height: 120px;
             overflow-y: auto;
+            font-size: 12px;
         }
         .auth-container {
             text-align: center;
@@ -116,26 +181,29 @@
         .hidden {
             display: none;
         }
-        .section-toggle {
-            background: #000;
-            border: 2px solid #0f0;
+        .loading {
+            text-align: center;
+            padding: 20px;
             color: #0f0;
-            padding: 8px 15px;
-            margin: 5px;
-            cursor: pointer;
         }
-        .section-toggle:hover {
+        .no-requests {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+        ::-webkit-scrollbar-thumb {
             background: #0f0;
-            color: #000;
+            border-radius: 4px;
         }
-        .section-toggle.active {
-            background: #0f0;
-            color: #000;
-        }
-        .request-section {
-            margin-top: 20px;
-            border-top: 1px dashed #0f0;
-            padding-top: 20px;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0a0;
         }
     </style>
 </head>
@@ -150,30 +218,36 @@
     </div>
     
     <div class="container hidden" id="adminPanel">
-        <h1 class="status-header">:: TRANSACTION MANAGEMENT ::</h1>
+        <h1 style="text-align: center; margin-bottom: 15px; text-shadow: 0 0 10px #0f0;">:: TRANSACTION MANAGEMENT ::</h1>
         
-        <div style="text-align: center; margin-bottom: 20px;">
-            <button class="section-toggle active" onclick="showSection('pending')">Pending Requests</button>
-            <button class="section-toggle" onclick="showSection('approved')">Approved Requests</button>
-            <button class="section-toggle" onclick="showSection('rejected')">Rejected Requests</button>
+        <div class="section-toggles">
+            <button class="section-toggle active" data-section="pending">Pending</button>
+            <button class="section-toggle" data-section="approved">Approved</button>
+            <button class="section-toggle" data-section="rejected">Rejected</button>
         </div>
         
-        <div id="pendingSection" class="request-section">
-            <h2 class="status-header">:: PENDING REQUESTS ::</h2>
+        <div id="pendingSection" class="request-section active">
+            <h2 class="section-header">PENDING REQUESTS</h2>
             <div class="request-list" id="pendingRequestList">
                 <div class="loading">LOADING PENDING REQUESTS...</div>
             </div>
         </div>
         
-        <div id="approvedSection" class="request-section hidden">
-            <h2 class="status-header">:: APPROVED REQUESTS ::</h2>
+        <div id="approvedSection" class="request-section">
+            <h2 class="section-header">
+                APPROVED REQUESTS
+                <button class="clear-btn" onclick="clearApprovedRequests()">CLEAR ALL</button>
+            </h2>
             <div class="request-list" id="approvedRequestList">
                 <div class="loading">LOADING APPROVED REQUESTS...</div>
             </div>
         </div>
         
-        <div id="rejectedSection" class="request-section hidden">
-            <h2 class="status-header">:: REJECTED REQUESTS ::</h2>
+        <div id="rejectedSection" class="request-section">
+            <h2 class="section-header">
+                REJECTED REQUESTS
+                <button class="clear-btn" onclick="clearRejectedRequests()">CLEAR ALL</button>
+            </h2>
             <div class="request-list" id="rejectedRequestList">
                 <div class="loading">LOADING REJECTED REQUESTS...</div>
             </div>
@@ -187,9 +261,119 @@
         const ADMIN_KEY = "2205";
         let isAuthenticated = false;
         
-        // Define these variables at the top level
+        // GitHub configuration
         const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
         const GITHUB_TOKEN = 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub';
+
+        // Clear approved requests permanently
+        async function clearApprovedRequests() {
+            if (confirm("⚠️ WARNING: This will PERMANENTLY DELETE ALL approved requests!\n\nThis action cannot be undone.\n\nAre you absolutely sure?")) {
+                const requestList = document.getElementById('approvedRequestList');
+                requestList.innerHTML = '<div class="loading">DELETING ALL APPROVED REQUESTS...</div>';
+                
+                try {
+                    // Get current transactions
+                    const gistRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    
+                    if (!gistRes.ok) throw new Error('Failed to fetch transactions');
+                    
+                    const gistData = await gistRes.json();
+                    const transactions = JSON.parse(gistData.files['transactions.json'].content);
+                    
+                    // Filter out approved transactions
+                    const filteredTransactions = Object.fromEntries(
+                        Object.entries(transactions).filter(([_, t]) => t.status !== 'approved')
+                    );
+                    
+                    // Save back to GitHub
+                    const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            files: {
+                                "transactions.json": {
+                                    content: JSON.stringify(filteredTransactions, null, 2)
+                                }
+                            }
+                        })
+                    });
+
+                    if (!updateRes.ok) throw new Error('Failed to update transactions');
+                    
+                    // Refresh the view
+                    refreshApprovedRequests();
+                    logDebug("✅ Successfully cleared all approved requests");
+                    
+                } catch (error) {
+                    logDebug(`❌ Error clearing approved requests: ${error.message}`);
+                    const requestList = document.getElementById('approvedRequestList');
+                    requestList.innerHTML = '<div class="error">CLEAR FAILED: ' + error.message + '</div>';
+                }
+            }
+        }
+
+        // Clear rejected requests permanently
+        async function clearRejectedRequests() {
+            if (confirm("⚠️ WARNING: This will PERMANENTLY DELETE ALL rejected requests!\n\nThis action cannot be undone.\n\nAre you absolutely sure?")) {
+                const requestList = document.getElementById('rejectedRequestList');
+                requestList.innerHTML = '<div class="loading">DELETING ALL REJECTED REQUESTS...</div>';
+                
+                try {
+                    // Get current transactions
+                    const gistRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    
+                    if (!gistRes.ok) throw new Error('Failed to fetch transactions');
+                    
+                    const gistData = await gistRes.json();
+                    const transactions = JSON.parse(gistData.files['transactions.json'].content);
+                    
+                    // Filter out rejected transactions
+                    const filteredTransactions = Object.fromEntries(
+                        Object.entries(transactions).filter(([_, t]) => t.status !== 'rejected')
+                    );
+                    
+                    // Save back to GitHub
+                    const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            files: {
+                                "transactions.json": {
+                                    content: JSON.stringify(filteredTransactions, null, 2)
+                                }
+                            }
+                        })
+                    });
+
+                    if (!updateRes.ok) throw new Error('Failed to update transactions');
+                    
+                    // Refresh the view
+                    refreshRejectedRequests();
+                    logDebug("✅ Successfully cleared all rejected requests");
+                    
+                } catch (error) {
+                    logDebug(`❌ Error clearing rejected requests: ${error.message}`);
+                    const requestList = document.getElementById('rejectedRequestList');
+                    requestList.innerHTML = '<div class="error">CLEAR FAILED: ' + error.message + '</div>';
+                }
+            }
+        }
 
         // Check authentication
         function checkAuth() {
@@ -209,16 +393,32 @@
 
         // Show/hide sections
         function showSection(section) {
-            document.querySelectorAll('.request-section').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.section-toggle').forEach(btn => btn.classList.remove('active'));
+            // Hide all sections
+            document.querySelectorAll('.request-section').forEach(el => {
+                el.classList.remove('active');
+            });
             
-            document.getElementById(section + 'Section').classList.remove('hidden');
-            document.querySelector(`button[onclick="showSection('${section}')"]`).classList.add('active');
+            // Show selected section
+            document.getElementById(section + 'Section').classList.add('active');
+            
+            // Update active button
+            document.querySelectorAll('.section-toggle').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.section === section);
+            });
             
             // Refresh the section being shown
             if (section === 'pending') refreshPendingRequests();
             else if (section === 'approved') refreshApprovedRequests();
             else if (section === 'rejected') refreshRejectedRequests();
+        }
+
+        // Initialize section toggle buttons
+        function initSectionToggles() {
+            document.querySelectorAll('.section-toggle').forEach(button => {
+                button.addEventListener('click', () => {
+                    showSection(button.dataset.section);
+                });
+            });
         }
 
         // Matrix animation
@@ -257,8 +457,7 @@
         // Debug logging
         function logDebug(message) {
             const consoleDiv = document.getElementById('debugConsole');
-            consoleDiv.innerHTML += `${new Date().toLocaleTimeString()}: ${message}<br>`;
-            console.log(message);
+            consoleDiv.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
         }
 
@@ -333,10 +532,10 @@
                 <div class="request-info">
                     <strong>ID:</strong> ${txnId}<br>
                     <strong>UPI REF:</strong> ${data.upiTxnId || 'N/A'}<br>
-                    <strong>TG ID:</strong> ${data.contactInfo || 'N/A'}<br>
+                    <strong>Contact:</strong> ${data.contactInfo || 'N/A'}<br>
                     <strong>IP:</strong> ${data.ip}<br>
-                    <strong>TIME:</strong> ${new Date(data.created).toLocaleString()}<br>
-                    ${data.resolvedAt ? `<strong>RESOLVED:</strong> ${new Date(data.resolvedAt).toLocaleString()}` : ''}
+                    <strong>Created:</strong> ${new Date(data.created).toLocaleString()}<br>
+                    ${data.resolvedAt ? `<strong>Resolved:</strong> ${new Date(data.resolvedAt).toLocaleString()}` : ''}
                 </div>
             `;
 
@@ -371,7 +570,8 @@
             try {
                 const transactions = await fetchTransactions();
                 const pendingRequests = Object.entries(transactions)
-                    .filter(([_, t]) => t.status === 'pending');
+                    .filter(([_, t]) => t.status === 'pending')
+                    .sort((a, b) => new Date(b[1].created) - new Date(a[1].created));
                 
                 requestList.innerHTML = '';
                 
@@ -382,7 +582,6 @@
 
                 pendingRequests.forEach(([txnId, data]) => {
                     const item = createRequestItem(txnId, data, true);
-                    item.id = txnId;
                     requestList.appendChild(item);
                 });
                 
@@ -398,7 +597,13 @@
             try {
                 const transactions = await fetchTransactions();
                 const approvedRequests = Object.entries(transactions)
-                    .filter(([_, t]) => t.status === 'approved');
+                    .filter(([_, t]) => t.status === 'approved')
+                    .map(([id, data]) => ({ id, data }))
+                    .sort((a, b) => {
+                        const dateA = a.data.resolvedAt ? new Date(a.data.resolvedAt) : new Date(a.data.created);
+                        const dateB = b.data.resolvedAt ? new Date(b.data.resolvedAt) : new Date(b.data.created);
+                        return dateB - dateA;
+                    });
                 
                 requestList.innerHTML = '';
                 
@@ -407,9 +612,8 @@
                     return;
                 }
 
-                approvedRequests.forEach(([txnId, data]) => {
-                    const item = createRequestItem(txnId, data, false);
-                    item.id = txnId;
+                approvedRequests.forEach(({id, data}) => {
+                    const item = createRequestItem(id, data, false);
                     requestList.appendChild(item);
                 });
                 
@@ -425,7 +629,13 @@
             try {
                 const transactions = await fetchTransactions();
                 const rejectedRequests = Object.entries(transactions)
-                    .filter(([_, t]) => t.status === 'rejected');
+                    .filter(([_, t]) => t.status === 'rejected')
+                    .map(([id, data]) => ({ id, data }))
+                    .sort((a, b) => {
+                        const dateA = a.data.resolvedAt ? new Date(a.data.resolvedAt) : new Date(a.data.created);
+                        const dateB = b.data.resolvedAt ? new Date(b.data.resolvedAt) : new Date(b.data.created);
+                        return dateB - dateA;
+                    });
                 
                 requestList.innerHTML = '';
                 
@@ -434,9 +644,8 @@
                     return;
                 }
 
-                rejectedRequests.forEach(([txnId, data]) => {
-                    const item = createRequestItem(txnId, data, false);
-                    item.id = txnId;
+                rejectedRequests.forEach(({id, data}) => {
+                    const item = createRequestItem(id, data, false);
                     requestList.appendChild(item);
                 });
                 
@@ -447,18 +656,20 @@
 
         // Admin panel initialization
         function initAdminPanel() {
-            // Initial load
+            initSectionToggles();
             refreshPendingRequests();
             refreshApprovedRequests();
             refreshRejectedRequests();
+            
+            // Auto-refresh visible section every 30 seconds
             setInterval(() => {
-                if (document.getElementById('pendingSection').classList.contains('hidden') === false) {
+                if (document.getElementById('pendingSection').classList.contains('active')) {
                     refreshPendingRequests();
                 }
-                if (document.getElementById('approvedSection').classList.contains('hidden') === false) {
+                else if (document.getElementById('approvedSection').classList.contains('active')) {
                     refreshApprovedRequests();
                 }
-                if (document.getElementById('rejectedSection').classList.contains('hidden') === false) {
+                else if (document.getElementById('rejectedSection').classList.contains('active')) {
                     refreshRejectedRequests();
                 }
             }, 30000);
