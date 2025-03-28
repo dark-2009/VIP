@@ -191,6 +191,11 @@
             padding: 20px;
             color: #888;
         }
+        .error {
+            color: #f00;
+            text-align: center;
+            padding: 20px;
+        }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -261,7 +266,7 @@
         const ADMIN_KEY = "2205";
         let isAuthenticated = false;
         
-        // GitHub configuration
+        // GitHub configuration - REPLACE THESE WITH YOUR OWN VALUES
         const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
         const GITHUB_TOKEN = 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub';
 
@@ -273,17 +278,7 @@
                 
                 try {
                     // Get current transactions
-                    const gistRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                        headers: {
-                            'Authorization': `token ${GITHUB_TOKEN}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    });
-                    
-                    if (!gistRes.ok) throw new Error('Failed to fetch transactions');
-                    
-                    const gistData = await gistRes.json();
-                    const transactions = JSON.parse(gistData.files['transactions.json'].content);
+                    const transactions = await fetchTransactions();
                     
                     // Filter out approved transactions
                     const filteredTransactions = Object.fromEntries(
@@ -291,22 +286,7 @@
                     );
                     
                     // Save back to GitHub
-                    const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Authorization': `token ${GITHUB_TOKEN}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            files: {
-                                "transactions.json": {
-                                    content: JSON.stringify(filteredTransactions, null, 2)
-                                }
-                            }
-                        })
-                    });
-
-                    if (!updateRes.ok) throw new Error('Failed to update transactions');
+                    await updateGist(filteredTransactions);
                     
                     // Refresh the view
                     refreshApprovedRequests();
@@ -328,17 +308,7 @@
                 
                 try {
                     // Get current transactions
-                    const gistRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                        headers: {
-                            'Authorization': `token ${GITHUB_TOKEN}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    });
-                    
-                    if (!gistRes.ok) throw new Error('Failed to fetch transactions');
-                    
-                    const gistData = await gistRes.json();
-                    const transactions = JSON.parse(gistData.files['transactions.json'].content);
+                    const transactions = await fetchTransactions();
                     
                     // Filter out rejected transactions
                     const filteredTransactions = Object.fromEntries(
@@ -346,22 +316,7 @@
                     );
                     
                     // Save back to GitHub
-                    const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Authorization': `token ${GITHUB_TOKEN}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            files: {
-                                "transactions.json": {
-                                    content: JSON.stringify(filteredTransactions, null, 2)
-                                }
-                            }
-                        })
-                    });
-
-                    if (!updateRes.ok) throw new Error('Failed to update transactions');
+                    await updateGist(filteredTransactions);
                     
                     // Refresh the view
                     refreshRejectedRequests();
@@ -461,6 +416,30 @@
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
         }
 
+        // Update GitHub gist
+        async function updateGist(content) {
+            const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `token ${GITHUB_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    files: {
+                        "transactions.json": {
+                            content: JSON.stringify(content, null, 2)
+                        }
+                    }
+                })
+            });
+
+            if (!updateRes.ok) {
+                const errorData = await updateRes.json();
+                logDebug(`GitHub API Error: ${JSON.stringify(errorData)}`);
+                throw new Error('Failed to update transactions');
+            }
+        }
+
         async function fetchTransactions() {
             try {
                 logDebug("Fetching transactions from GitHub...");
@@ -471,11 +450,29 @@
                     }
                 });
 
-                if (!gistRes.ok) throw new Error('Failed to fetch transactions');
+                if (!gistRes.ok) {
+                    const errorData = await gistRes.json();
+                    logDebug(`GitHub API Error: ${JSON.stringify(errorData)}`);
+                    throw new Error('Failed to fetch transactions');
+                }
                 
                 const gistData = await gistRes.json();
-                const transactions = JSON.parse(gistData.files['transactions.json'].content);
-                return transactions;
+                logDebug("Successfully fetched gist data");
+                
+                // Check if transactions.json exists
+                if (!gistData.files || !gistData.files['transactions.json']) {
+                    logDebug("No transactions.json file found, creating empty structure");
+                    return {};
+                }
+                
+                try {
+                    const transactions = JSON.parse(gistData.files['transactions.json'].content);
+                    logDebug(`Found ${Object.keys(transactions).length} transactions`);
+                    return transactions;
+                } catch (parseError) {
+                    logDebug(`Error parsing transactions: ${parseError.message}`);
+                    return {};
+                }
             } catch (error) {
                 logDebug(`Error fetching transactions: ${error.message}`);
                 return {};
@@ -497,20 +494,7 @@
                 };
 
                 // Save back to GitHub
-                await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        files: {
-                            "transactions.json": {
-                                content: JSON.stringify(transactions, null, 2)
-                            }
-                        }
-                    })
-                });
+                await updateGist(transactions);
 
                 // Refresh all sections after update
                 refreshPendingRequests();
@@ -681,6 +665,40 @@
                 checkAuth();
             }
         });
+
+        // Initialize with test data if empty (for debugging)
+        async function initializeTestData() {
+            try {
+                const transactions = await fetchTransactions();
+                if (Object.keys(transactions).length === 0) {
+                    logDebug("No transactions found, creating test data");
+                    const testData = {
+                        "test1": {
+                            "upiTxnId": "TEST123456",
+                            "contactInfo": "test1@example.com",
+                            "ip": "192.168.1.1",
+                            "created": new Date().toISOString(),
+                            "status": "pending"
+                        },
+                        "test2": {
+                            "upiTxnId": "TEST789012",
+                            "contactInfo": "test2@example.com",
+                            "ip": "192.168.1.2",
+                            "created": new Date(Date.now() - 3600000).toISOString(),
+                            "status": "pending"
+                        }
+                    };
+                    await updateGist(testData);
+                    logDebug("Created test transactions");
+                    refreshPendingRequests();
+                }
+            } catch (error) {
+                logDebug(`Error initializing test data: ${error.message}`);
+            }
+        }
+
+        // Uncomment the next line to automatically create test data when empty
+        // initializeTestData();
     </script>
 </body>
 </html>
