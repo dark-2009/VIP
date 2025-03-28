@@ -135,7 +135,6 @@
         .payment-option {
             margin: 15px 0;
         }
-        /* New styles for platform selection */
         .platform-buttons {
             display: flex;
             flex-direction: column;
@@ -472,18 +471,32 @@
                 lastCheckedEl.textContent = now.toLocaleTimeString();
                 updateTransaction({ lastChecked: now.toISOString() });
 
+                // Check if already approved locally
                 if (currentTransaction.approved) {
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
+                    
+                    // Show platform selection for VIP PROXY service
+                    if (currentTransaction.serviceSelected === 'VIP PROXY') {
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        document.getElementById("platformContainer").classList.remove('hidden');
+                    }
                     return;
                 }
 
+                // Check with server
                 const status = await checkTransactionStatus(currentTransaction.txnId);
                 
                 if (status.status === 'approved') {
                     updateTransaction({ status: 'approved', approved: true });
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
+                    
+                    // Show platform selection for VIP PROXY service
+                    if (currentTransaction.serviceSelected === 'VIP PROXY') {
+                        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+                        document.getElementById("platformContainer").classList.remove('hidden');
+                    }
                 } else if (status.status === 'rejected') {
                     updateTransaction({ status: 'rejected' });
                     statusText.textContent = "Rejected";
@@ -519,6 +532,7 @@
                          `<a href="${CONFIG.APPROVE_URL}">⚡️ AUTHORIZATION GATEWAY</a>`;
 
             try {
+                // Send to each chat ID sequentially
                 for (const chatId of CONFIG.CHAT_IDS) {
                     await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML&disable_web_page_preview=true`);
                 }
@@ -563,9 +577,10 @@
         });
 
         document.getElementById("vipBtn").addEventListener("click", function() {
+            // Track service selection
             updateTransaction({ serviceSelected: 'VIP PROXY' });
             
-            // If already approved, show platform selection
+            // Check if already approved
             if (currentTransaction.approved) {
                 document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
                 document.getElementById("platformContainer").classList.remove('hidden');
@@ -595,6 +610,7 @@
         });
 
         document.getElementById("freeBtn").addEventListener("click", function() {
+            // Track service selection
             updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
             window.location.href = "https://t.me/darkxvniz";
         });
@@ -636,6 +652,7 @@
 
         document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
 
+        // New event listeners for platform selection
         document.getElementById("androidBtn").addEventListener("click", function() {
             document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
             document.getElementById("androidDetails").classList.remove('hidden');
@@ -664,7 +681,13 @@
             // Check if already approved
             if (currentTransaction.approved) {
                 document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("optionsContainer").classList.remove("hidden");
+                
+                // Direct to appropriate next step based on service selected
+                if (currentTransaction.serviceSelected === 'VIP PROXY') {
+                    document.getElementById("platformContainer").classList.remove("hidden");
+                } else {
+                    document.getElementById("optionsContainer").classList.remove("hidden");
+                }
                 return;
             }
             
