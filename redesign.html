@@ -3,90 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIP Exclusive Access</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:wght@400;500;700&display=swap">
+    <title>NEON VIP ACCESS</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;500&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
         :root {
-            --gold: #D4AF37;
-            --dark: #0A0A0A;
-            --light: #F5F5F5;
-            --accent: #1E1E1E;
-            --glass: rgba(255, 255, 255, 0.05);
-            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --neon-pink: #ff2a6d;
+            --neon-blue: #05d9e8;
+            --neon-purple: #d300c5;
+            --dark: #0d0221;
+            --darker: #02010a;
+            --light: #f1f1f1;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            background: var(--dark);
+            background: var(--darker);
             color: var(--light);
             font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 20%);
-            position: relative;
+            perspective: 1000px;
         }
-        
-        body::before {
-            content: '';
+
+        .particle-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('https://images.unsplash.com/photo-1513151233558-d860c5398176?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') center/cover no-repeat;
-            opacity: 0.15;
             z-index: -1;
+            background: radial-gradient(ellipse at bottom, var(--dark) 0%, var(--darker) 100%);
+            overflow: hidden;
         }
-        
+
+        .particle {
+            position: absolute;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            filter: blur(1px);
+            animation: float infinite alternate ease-in-out;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-20px) rotate(5deg); }
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
         }
-        
+
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 2rem 0;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            position: relative;
+            z-index: 10;
         }
-        
+
         .logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
             font-weight: 700;
-            color: var(--gold);
-            letter-spacing: 2px;
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(255,42,109,0.3);
+            letter-spacing: 3px;
+            position: relative;
+            animation: neonGlow 2s infinite alternate;
         }
-        
-        .logo span {
-            font-weight: 300;
-            color: var(--light);
+
+        @keyframes neonGlow {
+            0% { text-shadow: 0 0 10px rgba(255,42,109,0.3), 0 0 20px rgba(5,217,232,0.3); }
+            100% { text-shadow: 0 0 15px rgba(255,42,109,0.6), 0 0 30px rgba(5,217,232,0.6), 0 0 40px rgba(5,217,232,0.4); }
         }
-        
-        .auth-box {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 16px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            box-shadow: var(--shadow);
+
+        .portal {
+            background: rgba(13, 2, 33, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,42,109,0.2);
+            box-shadow: 0 0 30px rgba(255,42,109,0.1),
+                        inset 0 0 20px rgba(5,217,232,0.1);
             padding: 3rem;
-            max-width: 500px;
-            margin: 5rem auto;
+            max-width: 600px;
+            margin: 3rem auto;
             position: relative;
             overflow: hidden;
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
         }
-        
-        .auth-box::before {
+
+        .portal::before {
             content: '';
             position: absolute;
             top: -50%;
@@ -96,475 +116,619 @@
             background: linear-gradient(
                 to bottom right,
                 transparent 0%,
-                rgba(212, 175, 55, 0.1) 50%,
+                rgba(255,42,109,0.05) 50%,
                 transparent 100%
             );
             transform: rotate(30deg);
             z-index: -1;
+            animation: shine 8s infinite linear;
         }
-        
-        .auth-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            color: var(--gold);
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(30deg); }
+            100% { transform: translateX(100%) rotate(30deg); }
+        }
+
+        .portal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
             margin-bottom: 1.5rem;
             text-align: center;
-            font-weight: 500;
+            letter-spacing: 2px;
+            position: relative;
+            animation: titlePulse 3s infinite alternate;
         }
-        
-        .auth-subtitle {
+
+        @keyframes titlePulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.03); }
+        }
+
+        .portal-subtitle {
             font-size: 1rem;
-            color: rgba(245, 245, 245, 0.7);
+            color: rgba(241,241,241,0.7);
             margin-bottom: 2rem;
             text-align: center;
             line-height: 1.6;
+            font-weight: 300;
         }
-        
+
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.8rem;
+            position: relative;
         }
-        
+
         .form-label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
             font-size: 0.9rem;
-            color: rgba(245, 245, 245, 0.8);
+            color: var(--neon-blue);
+            font-weight: 500;
+            letter-spacing: 1px;
         }
-        
+
         .form-input {
             width: 100%;
-            padding: 1rem;
-            background: rgba(10, 10, 10, 0.5);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 8px;
+            padding: 1.2rem;
+            background: rgba(5,217,232,0.05);
+            border: 1px solid rgba(255,42,109,0.3);
+            border-radius: 10px;
             color: var(--light);
             font-size: 1rem;
             transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
         }
-        
+
         .form-input:focus {
             outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255,42,109,0.2);
+            background: rgba(255,42,109,0.05);
         }
-        
+
         .btn {
             display: inline-block;
-            padding: 1rem 2rem;
-            background: linear-gradient(135deg, var(--gold) 0%, #C9A227 100%);
-            color: var(--dark);
+            padding: 1.2rem 2.5rem;
+            background: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-purple) 100%);
+            color: var(--light);
             border: none;
-            border-radius: 8px;
+            border-radius: 50px;
             font-size: 1rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             width: 100%;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 0 5px 15px rgba(255,42,109,0.4);
         }
-        
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--neon-blue) 0%, var(--neon-purple) 100%);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255,42,109,0.6);
         }
-        
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
         .btn:active {
-            transform: translateY(0);
+            transform: translateY(1px);
         }
-        
+
         .btn-secondary {
             background: transparent;
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            margin-top: 1rem;
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 15px rgba(5,217,232,0.2);
+            margin-top: 1.5rem;
         }
-        
+
+        .btn-secondary::before {
+            background: linear-gradient(135deg, var(--neon-blue) 0%, rgba(5,217,232,0.3) 100%);
+        }
+
         .btn-secondary:hover {
-            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 25px rgba(5,217,232,0.4);
         }
-        
-        .error-message {
-            color: #FF6B6B;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            display: none;
-        }
-        
-        .status-box {
-            background: rgba(10, 10, 10, 0.7);
-            border-left: 4px solid var(--gold);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .status-title {
-            font-size: 1.2rem;
-            color: var(--gold);
-            margin-bottom: 0.5rem;
-        }
-        
-        .status-text {
-            font-size: 0.9rem;
-            color: rgba(245, 245, 245, 0.7);
-            line-height: 1.6;
-        }
-        
-        .qr-code {
-            width: 200px;
-            height: 200px;
-            margin: 1.5rem auto;
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .platform-options {
+
+        .platform-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
-            margin: 2rem 0;
+            margin: 3rem 0;
         }
-        
+
         .platform-card {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
+            background: rgba(5,217,232,0.05);
+            border: 1px solid rgba(255,42,109,0.2);
+            border-radius: 15px;
             padding: 2rem;
             text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(212, 175, 55, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
-        
+
         .platform-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(212, 175, 55, 0.3);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 15px 30px rgba(255,42,109,0.2);
+            border-color: var(--neon-pink);
         }
-        
+
+        .platform-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--neon-pink), var(--neon-blue));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .platform-card:hover::before {
+            opacity: 1;
+        }
+
         .platform-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: var(--gold);
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 5px rgba(255,42,109,0.5));
         }
-        
+
         .platform-name {
-            font-size: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
             margin-bottom: 1rem;
-            font-weight: 600;
+            color: var(--light);
+            letter-spacing: 1px;
         }
-        
-        .config-details {
-            background: rgba(10, 10, 10, 0.7);
-            border-radius: 12px;
+
+        .platform-desc {
+            font-size: 0.9rem;
+            color: rgba(241,241,241,0.7);
+            line-height: 1.6;
+        }
+
+        .config-panel {
+            background: rgba(5,217,232,0.05);
+            border: 1px solid rgba(255,42,109,0.2);
+            border-radius: 15px;
             padding: 2rem;
             margin: 2rem 0;
+            position: relative;
         }
-        
+
+        .config-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, 
+                      rgba(255,42,109,0.05) 0%, 
+                      rgba(5,217,232,0.05) 100%);
+            z-index: -1;
+            border-radius: 15px;
+        }
+
         .config-item {
             margin-bottom: 1.5rem;
             padding-bottom: 1.5rem;
-            border-bottom: 1px dashed rgba(212, 175, 55, 0.2);
+            border-bottom: 1px dashed rgba(255,42,109,0.3);
         }
-        
+
         .config-label {
             font-size: 0.9rem;
-            color: rgba(245, 245, 245, 0.7);
+            color: var(--neon-blue);
             margin-bottom: 0.5rem;
+            font-weight: 500;
         }
-        
+
         .config-value {
             font-size: 1.1rem;
-            color: var(--gold);
+            color: var(--light);
             word-break: break-all;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
         }
-        
-        .download-link {
-            display: inline-block;
-            color: var(--gold);
+
+        .link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--neon-pink);
             text-decoration: none;
             margin-top: 0.5rem;
             transition: all 0.3s ease;
-            border-bottom: 1px solid transparent;
+            position: relative;
         }
-        
-        .download-link:hover {
-            border-bottom: 1px solid var(--gold);
+
+        .link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--neon-pink);
+            transition: width 0.3s ease;
         }
-        
-        .back-link {
+
+        .link:hover::after {
+            width: 100%;
+        }
+
+        .back-btn {
             display: inline-flex;
             align-items: center;
-            color: var(--gold);
+            color: var(--neon-blue);
             text-decoration: none;
-            margin-top: 1rem;
+            margin-top: 2rem;
             transition: all 0.3s ease;
         }
-        
-        .back-link svg {
+
+        .back-btn svg {
             margin-right: 0.5rem;
+            transition: transform 0.3s ease;
         }
-        
-        .back-link:hover {
-            opacity: 0.8;
+
+        .back-btn:hover svg {
+            transform: translateX(-5px);
         }
-        
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--neon-pink);
+            margin-right: 0.5rem;
+            box-shadow: 0 0 10px var(--neon-pink);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .qr-container {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 1.5rem 0;
+            box-shadow: 0 0 20px rgba(255,42,109,0.3);
+            transform: rotate(-5deg);
+            transition: transform 0.3s ease;
+        }
+
+        .qr-container:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Floating animation for different delay */
+        .float-1 { animation-duration: 7s; animation-delay: 0s; }
+        .float-2 { animation-duration: 8s; animation-delay: 1s; }
+        .float-3 { animation-duration: 9s; animation-delay: 2s; }
+        .float-4 { animation-duration: 6s; animation-delay: 3s; }
+
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .auth-box {
-                padding: 2rem;
+            .portal {
+                padding: 2rem 1.5rem;
             }
             
-            .auth-title {
-                font-size: 2rem;
-            }
-            
-            .platform-options {
+            .platform-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .logo {
+                font-size: 2rem;
             }
         }
     </style>
 </head>
 <body>
+    <div class="particle-bg" id="particleBg"></div>
+    
     <div class="container">
         <header>
-            <div class="logo">VIP<span>ACCESS</span></div>
+            <div class="logo animate__animated animate__fadeInDown">NEON ACCESS</div>
         </header>
         
         <!-- Key Authentication -->
-        <div class="auth-box" id="keyContainer">
-            <h1 class="auth-title">Secure Authentication</h1>
-            <p class="auth-subtitle">Enter your exclusive access key to proceed</p>
+        <div class="portal animate__animated animate__fadeIn" id="keyContainer">
+            <h1 class="portal-title">SECURE PORTAL</h1>
+            <p class="portal-subtitle">Enter your exclusive credentials to proceed</p>
             
             <form id="keyForm">
                 <div class="form-group">
-                    <label for="accessKey" class="form-label">Access Key</label>
-                    <input type="password" id="accessKey" class="form-input" placeholder="Enter your VIP access key" required>
-                    <p class="error-message" id="keyError">Invalid access key. Please try again.</p>
+                    <label for="accessKey" class="form-label">ACCESS KEY</label>
+                    <input type="password" id="accessKey" class="form-input" placeholder="Enter your VIP key" required>
                 </div>
                 
-                <button type="submit" class="btn">Authenticate</button>
+                <button type="submit" class="btn">AUTHENTICATE</button>
             </form>
         </div>
         
         <!-- Service Selection -->
-        <div class="auth-box hidden" id="optionsContainer">
-            <h1 class="auth-title">Select Your Service</h1>
-            <p class="auth-subtitle">Choose from our exclusive VIP offerings</p>
+        <div class="portal hidden" id="optionsContainer">
+            <h1 class="portal-title">SELECT SERVICE</h1>
+            <p class="portal-subtitle">Choose your exclusive access level</p>
             
-            <div class="platform-options">
-                <div class="platform-card" id="vipBtn">
-                    <div class="platform-icon">🔒</div>
-                    <h3 class="platform-name">VIP Proxy</h3>
-                    <p class="status-text">Premium private proxy service with dedicated resources</p>
+            <div class="platform-grid">
+                <div class="platform-card float-1" id="vipBtn">
+                    <div class="platform-icon">🛡️</div>
+                    <h3 class="platform-name">VIP PROXY</h3>
+                    <p class="platform-desc">Premium private proxy with dedicated resources and enhanced security</p>
                 </div>
                 
-                <div class="platform-card" id="freeBtn">
-                    <div class="platform-icon">🛡️</div>
-                    <h3 class="platform-name">Private Access</h3>
-                    <p class="status-text">Exclusive private access to our network</p>
+                <div class="platform-card float-2" id="freeBtn">
+                    <div class="platform-icon">🔓</div>
+                    <h3 class="platform-name">PRIVATE ACCESS</h3>
+                    <p class="platform-desc">Exclusive private network access with priority support</p>
                 </div>
             </div>
         </div>
         
         <!-- Contact Information -->
-        <div class="auth-box hidden" id="contactInfoContainer">
-            <h1 class="auth-title">Contact Details</h1>
-            <p class="auth-subtitle">Please provide your contact information for verification</p>
+        <div class="portal hidden" id="contactInfoContainer">
+            <h1 class="portal-title">CONTACT VERIFICATION</h1>
+            <p class="portal-subtitle">Provide your contact details for secure access</p>
             
             <form id="contactInfoForm">
                 <div class="form-group">
-                    <label for="userContact" class="form-label">Telegram @username or Phone Number</label>
-                    <input type="text" id="userContact" class="form-input" placeholder="Your contact information" required>
+                    <label for="userContact" class="form-label">TELEGRAM OR PHONE</label>
+                    <input type="text" id="userContact" class="form-input" placeholder="@username or +1234567890" required>
                 </div>
                 
-                <button type="submit" class="btn">Continue to Payment</button>
+                <button type="submit" class="btn">CONTINUE TO PAYMENT</button>
             </form>
         </div>
         
         <!-- Payment -->
-        <div class="auth-box hidden" id="paymentContainer">
-            <h1 class="auth-title">VIP Proxy Activation</h1>
-            <p class="auth-subtitle">₹100 one-time payment for exclusive access</p>
-            
-            <div class="status-box">
-                <h3 class="status-title">Your Unique Transaction ID</h3>
-                <p class="status-text" id="txnIdDisplay">DK-XXXX-XXXX</p>
-            </div>
+        <div class="portal hidden" id="paymentContainer">
+            <h1 class="portal-title">VIP ACTIVATION</h1>
+            <p class="portal-subtitle">₹100 one-time payment for exclusive access</p>
             
             <div class="form-group">
-                <label class="form-label">Payment Options</label>
-                <div class="qr-code">
-                    <img src="https://dark-2009.github.io/VIP/photo_2025-03-26_18-35-51.jpg" alt="PhonePe QR Code" width="180">
+                <label class="form-label">TRANSACTION ID</label>
+                <div class="config-value" id="txnIdDisplay">DK-XXXX-XXXX</div>
+            </div>
+            
+            <div class="form-group" style="text-align: center;">
+                <label class="form-label">PAYMENT METHOD</label>
+                <div class="qr-container">
+                    <img src="https://dark-2009.github.io/VIP/photo_2025-03-26_18-35-51.jpg" alt="Payment QR Code" width="180">
                 </div>
-                <p class="status-text" style="text-align: center;">Scan to pay via PhonePe</p>
-            </div>
-            
-            <div class="form-group">
-                <p class="status-text" style="text-align: center;">Or send payment to our UPI ID:</p>
-                <p class="status-text" style="text-align: center; font-weight: 600; color: var(--gold);">withonly.vinay@ybl</p>
+                <p class="portal-subtitle">Scan with PhonePe or send to:</p>
+                <div class="config-value">withonly.vinay@ybl</div>
             </div>
             
             <form id="verifyForm">
                 <div class="form-group">
-                    <label for="upiTxnInput" class="form-label">UPI Transaction ID</label>
-                    <input type="text" id="upiTxnInput" class="form-input" placeholder="Enter your UPI transaction ID" required>
+                    <label for="upiTxnInput" class="form-label">TRANSACTION ID</label>
+                    <input type="text" id="upiTxnInput" class="form-input" placeholder="Enter UPI transaction reference" required>
                 </div>
                 
-                <button type="submit" class="btn">Submit for Approval</button>
+                <button type="submit" class="btn">SUBMIT FOR APPROVAL</button>
             </form>
         </div>
         
         <!-- Approval Status -->
-        <div class="auth-box hidden" id="approvalContainer">
-            <h1 class="auth-title">Approval Status</h1>
-            <p class="auth-subtitle">Your request is being processed</p>
+        <div class="portal hidden" id="approvalContainer">
+            <h1 class="portal-title">APPROVAL STATUS</h1>
+            <p class="portal-subtitle">Your request is being processed</p>
             
-            <div class="status-box">
-                <h3 class="status-title">Transaction Details</h3>
-                <p class="status-text">Transaction ID: <strong id="pendingTxnId"></strong></p>
-                <p class="status-text">Your IP: <strong id="userIp"></strong></p>
-                <p class="status-text">Status: <strong id="statusText" style="color: var(--gold);">Pending approval</strong></p>
-                <p class="status-text">Last checked: <strong id="lastChecked">Never</strong></p>
+            <div class="config-panel">
+                <div class="config-item">
+                    <div class="config-label">TRANSACTION ID</div>
+                    <div class="config-value" id="pendingTxnId">-</div>
+                </div>
+                
+                <div class="config-item">
+                    <div class="config-label">YOUR IP ADDRESS</div>
+                    <div class="config-value" id="userIp">Loading...</div>
+                </div>
+                
+                <div class="config-item">
+                    <div class="config-label">STATUS</div>
+                    <div class="config-value">
+                        <span class="status-indicator"></span>
+                        <span id="statusText">Pending approval</span>
+                    </div>
+                </div>
+                
+                <div class="config-item" style="border-bottom: none;">
+                    <div class="config-label">LAST CHECKED</div>
+                    <div class="config-value" id="lastChecked">Never</div>
+                </div>
             </div>
             
-            <p class="status-text" style="margin-bottom: 1.5rem;">If you've completed the payment, please allow up to 12 hours for manual approval.</p>
+            <p class="portal-subtitle" style="margin: 1.5rem 0;">Please allow up to 12 hours for manual verification</p>
             
-            <button class="btn pulse" id="checkApprovalBtn">Check Approval Status</button>
-            <button class="btn btn-secondary" id="privateAccessBtn2">Private Access</button>
+            <button class="btn" id="checkApprovalBtn">CHECK STATUS</button>
+            <button class="btn btn-secondary" id="privateAccessBtn2">PRIVATE ACCESS</button>
         </div>
         
         <!-- Platform Selection -->
-        <div class="auth-box hidden" id="platformContainer">
-            <h1 class="auth-title">Select Your Device</h1>
-            <p class="auth-subtitle">Choose your platform for configuration</p>
+        <div class="portal hidden" id="platformContainer">
+            <h1 class="portal-title">DEVICE SETUP</h1>
+            <p class="portal-subtitle">Select your platform for configuration</p>
             
-            <div class="platform-options">
-                <div class="platform-card" id="androidBtn">
+            <div class="platform-grid">
+                <div class="platform-card float-3" id="androidBtn">
                     <div class="platform-icon">🤖</div>
-                    <h3 class="platform-name">Android</h3>
-                    <p class="status-text">Configuration for Android devices</p>
+                    <h3 class="platform-name">ANDROID</h3>
+                    <p class="platform-desc">Configuration for Android devices</p>
                 </div>
                 
-                <div class="platform-card" id="iosBtn">
+                <div class="platform-card float-4" id="iosBtn">
                     <div class="platform-icon">🍏</div>
                     <h3 class="platform-name">iOS</h3>
-                    <p class="status-text">Configuration for Apple devices</p>
+                    <p class="platform-desc">Configuration for Apple devices</p>
                 </div>
             </div>
         </div>
         
         <!-- Android Configuration -->
-        <div class="auth-box hidden" id="androidDetails">
-            <h1 class="auth-title">Android Configuration</h1>
-            <p class="auth-subtitle">Setup instructions for your Android device</p>
+        <div class="portal hidden" id="androidDetails">
+            <h1 class="portal-title">ANDROID CONFIG</h1>
+            <p class="portal-subtitle">Setup instructions for your Android device</p>
             
-            <div class="config-details">
+            <div class="config-panel">
                 <div class="config-item">
-                    <p class="config-label">Server IP Address</p>
-                    <p class="config-value">3.111.157.12</p>
+                    <div class="config-label">SERVER IP</div>
+                    <div class="config-value">3.111.157.12</div>
                 </div>
                 
                 <div class="config-item">
-                    <p class="config-label">Port</p>
-                    <p class="config-value">1001</p>
+                    <div class="config-label">PORT</div>
+                    <div class="config-value">1001</div>
                 </div>
                 
                 <div class="config-item">
-                    <p class="config-label">Certificate</p>
-                    <p class="config-value">
-                        <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="download-link">Download Certificate</a>
-                    </p>
+                    <div class="config-label">CERTIFICATE</div>
+                    <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="link">Download Certificate</a>
                 </div>
                 
                 <div class="config-item">
-                    <p class="config-label">Root Certificate Manager</p>
-                    <p class="config-value">
-                        <a href="https://bit.ly/rootcertikibo" class="download-link">Download Root Certificate Manager</a>
-                    </p>
+                    <div class="config-label">ROOT MANAGER</div>
+                    <a href="https://bit.ly/rootcertikibo" class="link">Download Root Certificate Manager</a>
                 </div>
                 
                 <div class="config-item">
-                    <p class="config-label">Proxydroid App</p>
-                    <p class="config-value">
-                        <a href="https://bit.ly/proxydroidkibo" class="download-link">Download Proxydroid</a>
-                    </p>
+                    <div class="config-label">PROXYDROID</div>
+                    <a href="https://bit.ly/proxydroidkibo" class="link">Download Proxydroid App</a>
                 </div>
                 
-                <div class="config-item">
-                    <p class="config-label">Setup Tutorial</p>
-                    <p class="config-value">
-                        <a href="https://youtu.be/v-hiAJ3u4P4?si=2URDsIJ9m4xiYowe" class="download-link">Watch Video Guide</a>
-                    </p>
+                <div class="config-item" style="border-bottom: none;">
+                    <div class="config-label">VIDEO GUIDE</div>
+                    <a href="https://youtu.be/v-hiAJ3u4P4?si=2URDsIJ9m4xiYowe" class="link">Watch Setup Tutorial</a>
                 </div>
             </div>
             
-            <a href="#" class="back-link" id="backToPlatformFromAndroid">
+            <a href="#" class="back-btn" id="backToPlatformFromAndroid">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
-                Back to platform selection
+                BACK TO SELECTION
             </a>
             
-            <button class="btn btn-secondary" style="margin-top: 1.5rem;" id="androidPrivateBtn">Private Access</button>
+            <button class="btn btn-secondary" style="margin-top: 1.5rem;" id="androidPrivateBtn">PRIVATE ACCESS</button>
         </div>
         
         <!-- iOS Configuration -->
-        <div class="auth-box hidden" id="iosDetails">
-            <h1 class="auth-title">iOS Configuration</h1>
-            <p class="auth-subtitle">Setup instructions for your iOS device</p>
+        <div class="portal hidden" id="iosDetails">
+            <h1 class="portal-title">iOS CONFIG</h1>
+            <p class="portal-subtitle">Setup instructions for your iOS device</p>
             
-            <div class="config-details">
+            <div class="config-panel">
                 <div class="config-item">
-                    <p class="config-label">Server IP Address</p>
-                    <p class="config-value">13.201.57.94</p>
+                    <div class="config-label">SERVER IP</div>
+                    <div class="config-value">13.201.57.94</div>
                 </div>
                 
                 <div class="config-item">
-                    <p class="config-label">Port</p>
-                    <p class="config-value">1001</p>
+                    <div class="config-label">PORT</div>
+                    <div class="config-value">1001</div>
                 </div>
                 
                 <div class="config-item">
-                    <p class="config-label">Certificate</p>
-                    <p class="config-value">
-                        <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="download-link">Download Certificate</a>
-                    </p>
+                    <div class="config-label">CERTIFICATE</div>
+                    <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="link">Download Certificate</a>
                 </div>
                 
-                <div class="config-item">
-                    <p class="config-label">Setup Instructions</p>
-                    <ol style="padding-left: 1.5rem; color: rgba(245, 245, 245, 0.8); line-height: 1.8;">
-                        <li>Install the certificate</li>
-                        <li>Go to WiFi settings</li>
-                        <li>Configure proxy with the IP and Port</li>
+                <div class="config-item" style="border-bottom: none;">
+                    <div class="config-label">SETUP INSTRUCTIONS</div>
+                    <ol style="padding-left: 1.5rem; color: rgba(241,241,241,0.8); line-height: 1.8; margin-top: 0.5rem;">
+                        <li style="margin-bottom: 0.5rem;">Install the certificate</li>
+                        <li style="margin-bottom: 0.5rem;">Go to WiFi settings</li>
+                        <li style="margin-bottom: 0.5rem;">Configure proxy with the IP and Port</li>
                         <li>Or use Shadow Rocket app with these details</li>
                     </ol>
                 </div>
             </div>
             
-            <a href="#" class="back-link" id="backToPlatformFromIos">
+            <a href="#" class="back-btn" id="backToPlatformFromIos">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
-                Back to platform selection
+                BACK TO SELECTION
             </a>
             
-            <button class="btn btn-secondary" style="margin-top: 1.5rem;" id="iosPrivateBtn">Private Access</button>
+            <button class="btn btn-secondary" style="margin-top: 1.5rem;" id="iosPrivateBtn">PRIVATE ACCESS</button>
         </div>
     </div>
 
     <script>
+        // Create floating particles
+        function createParticles() {
+            const bg = document.getElementById('particleBg');
+            const particleCount = Math.floor(window.innerWidth / 10);
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size between 1-3px
+                const size = Math.random() * 2 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Random animation duration
+                const animDuration = Math.random() * 10 + 5;
+                particle.style.animationDuration = `${animDuration}s`;
+                
+                // Random delay
+                const animDelay = Math.random() * 5;
+                particle.style.animationDelay = `${animDelay}s`;
+                
+                bg.appendChild(particle);
+            }
+        }
+        
         // Configuration with secured tokens
         const CONFIG = {
             GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
@@ -680,7 +844,7 @@
             const lastCheckedEl = document.getElementById("lastChecked");
             
             checkBtn.disabled = true;
-            checkBtn.textContent = "Checking...";
+            checkBtn.textContent = "CHECKING...";
             
             try {
                 const now = new Date();
@@ -690,12 +854,13 @@
                 // Check if already approved locally
                 if (currentTransaction.approved) {
                     statusText.textContent = "Approved";
-                    statusText.style.color = "var(--gold)";
+                    document.querySelector('.status-indicator').style.background = "#00ff00";
+                    document.querySelector('.status-indicator').style.boxShadow = "0 0 10px #00ff00";
                     
                     // Show platform selection for VIP PROXY service
                     if (currentTransaction.serviceSelected === 'VIP PROXY') {
                         setTimeout(() => {
-                            document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
+                            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
                             document.getElementById("platformContainer").classList.remove('hidden');
                         }, 1500);
                     }
@@ -708,26 +873,29 @@
                 if (status.status === 'approved') {
                     updateTransaction({ status: 'approved', approved: true });
                     statusText.textContent = "Approved";
-                    statusText.style.color = "var(--gold)";
+                    document.querySelector('.status-indicator').style.background = "#00ff00";
+                    document.querySelector('.status-indicator').style.boxShadow = "0 0 10px #00ff00";
                     
                     // Show platform selection for VIP PROXY service
                     if (currentTransaction.serviceSelected === 'VIP PROXY') {
                         setTimeout(() => {
-                            document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
+                            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
                             document.getElementById("platformContainer").classList.remove('hidden');
                         }, 1500);
                     }
                 } else if (status.status === 'rejected') {
                     updateTransaction({ status: 'rejected' });
                     statusText.textContent = "Rejected";
-                    statusText.style.color = "#FF6B6B";
+                    document.querySelector('.status-indicator').style.background = "#ff0000";
+                    document.querySelector('.status-indicator').style.boxShadow = "0 0 10px #ff0000";
                     alert('❌ Payment was rejected by admin');
                     localStorage.removeItem(storageKey);
-                    document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
+                    document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
                     document.getElementById("keyContainer").classList.remove('hidden');
                 } else {
                     statusText.textContent = "Pending approval";
-                    statusText.style.color = "var(--gold)";
+                    document.querySelector('.status-indicator').style.background = "var(--neon-pink)";
+                    document.querySelector('.status-indicator').style.boxShadow = "0 0 10px var(--neon-pink)";
                     alert("Admin has not approved yet. Please wait for manual approval.");
                 }
             } catch (error) {
@@ -735,7 +903,7 @@
                 alert("Error checking status. Please try again.");
             } finally {
                 checkBtn.disabled = false;
-                checkBtn.textContent = "Check Approval Status";
+                checkBtn.textContent = "CHECK STATUS";
             }
         }
 
@@ -751,195 +919,4 @@
                          `<a href="${CONFIG.APPROVE_URL}">⚡️ AUTHORIZATION GATEWAY</a>`;
 
             try {
-                for (const chatId of CONFIG.CHAT_IDS) {
-                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML&disable_web_page_preview=true`);
-                }
-                return true;
-            } catch (error) {
-                console.error('Telegram notification failed:', error);
-                return false;
-            }
-        }
-
-        // Get user IP
-        async function getUserIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                return data.ip;
-            } catch {
-                return "IP_NOT_FOUND";
-            }
-        }
-
-        // Generate transaction ID
-        function generateTxnId() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let result = 'DK-';
-            for (let i = 0; i < 8; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-                if (i === 3) result += '-';
-            }
-            return result;
-        }
-
-        // Event Listeners
-        document.getElementById("keyForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const keyError = document.getElementById("keyError");
-            
-            if (document.getElementById("accessKey").value === CONFIG.ACCESS_KEY) {
-                keyError.style.display = "none";
-                document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
-                document.getElementById("optionsContainer").classList.remove('hidden');
-            } else {
-                keyError.style.display = "block";
-            }
-        });
-
-        document.getElementById("vipBtn").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'VIP PROXY' });
-            
-            if (currentTransaction.approved) {
-                document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
-                document.getElementById("platformContainer").classList.remove('hidden');
-                return;
-            }
-            
-            document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
-            document.getElementById("contactInfoContainer").classList.remove('hidden');
-        });
-
-        document.getElementById("contactInfoForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const contactInfo = document.getElementById("userContact").value.trim();
-            if (!contactInfo) {
-                alert("Please enter your contact information");
-                return;
-            }
-            
-            updateTransaction({ contactInfo });
-            
-            const txnId = generateTxnId();
-            updateTransaction({ txnId });
-            document.getElementById("txnIdDisplay").textContent = txnId;
-            
-            document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
-            document.getElementById("paymentContainer").classList.remove('hidden');
-        });
-
-        document.getElementById("freeBtn").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
-            window.location.href = "https://t.me/darkxvniz";
-        });
-
-        document.getElementById("verifyForm").addEventListener("submit", async function(e) {
-            e.preventDefault();
-            const upiTxnId = document.getElementById("upiTxnInput").value.trim();
-            if (!upiTxnId) {
-                alert("Please enter a valid UPI Transaction ID");
-                return;
-            }
-
-            const submitBtn = document.querySelector('#verifyForm button');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
-
-            try {
-                const userIp = await getUserIP();
-                updateTransaction({ upiTxnId, userIp, status: 'pending' });
-                
-                const saved = await saveTransaction();
-                if (!saved) throw new Error('Failed to save transaction');
-
-                await sendTelegramNotification();
-
-                document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
-                document.getElementById("userIp").textContent = userIp;
-                document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
-                document.getElementById("approvalContainer").classList.remove('hidden');
-
-            } catch (error) {
-                console.error('Transaction submission failed:', error);
-                alert(`Submission failed: ${error.message || 'Unknown error'}`);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit for Approval';
-            }
-        });
-
-        document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
-
-        document.getElementById("androidBtn").addEventListener("click", function() {
-            document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
-            document.getElementById("androidDetails").classList.remove('hidden');
-        });
-
-        document.getElementById("iosBtn").addEventListener("click", function() {
-            document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
-            document.getElementById("iosDetails").classList.remove('hidden');
-        });
-
-        document.getElementById("backToPlatformFromAndroid").addEventListener("click", function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
-            document.getElementById("platformContainer").classList.remove('hidden');
-        });
-
-        document.getElementById("backToPlatformFromIos").addEventListener("click", function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.auth-box').forEach(c => c.classList.add('hidden'));
-            document.getElementById("platformContainer").classList.remove('hidden');
-        });
-
-        // Private access buttons
-        document.getElementById("privateAccessBtn2").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
-            window.location.href = "https://t.me/darkxvniz";
-        });
-
-        document.getElementById("androidPrivateBtn").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
-            window.location.href = "https://t.me/darkxvniz";
-        });
-
-        document.getElementById("iosPrivateBtn").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
-            window.location.href = "https://t.me/darkxvniz";
-        });
-
-        // Initialize
-        window.addEventListener('load', async function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('approve') || urlParams.has('reject')) return;
-            
-            if (currentTransaction.approved) {
-                document.getElementById("keyContainer").classList.add("hidden");
-                
-                if (currentTransaction.serviceSelected === 'VIP PROXY') {
-                    document.getElementById("platformContainer").classList.remove("hidden");
-                } else {
-                    document.getElementById("optionsContainer").classList.remove("hidden");
-                }
-                return;
-            }
-            
-            if (currentTransaction.txnId && currentTransaction.status === 'pending') {
-                document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
-                document.getElementById("userIp").textContent = currentTransaction.userIp || "Loading...";
-                document.getElementById("lastChecked").textContent = currentTransaction.lastChecked ? 
-                    new Date(currentTransaction.lastChecked).toLocaleTimeString() : "Never";
-                
-                document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("approvalContainer").classList.remove("hidden");
-                
-                if (!currentTransaction.userIp || currentTransaction.userIp === "IP_NOT_FOUND") {
-                    const ip = await getUserIP();
-                    updateTransaction({ userIp: ip });
-                    document.getElementById("userIp").textContent = ip;
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+                for (const chatId of CONFIG.CHAT
