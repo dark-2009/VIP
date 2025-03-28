@@ -27,18 +27,25 @@
             color: var(--charcoal);
         }
 
-        /* Panoramic background container */
-        .panorama-container {
+        /* 4K Landscape Background */
+        .bg-container {
             position: fixed;
             top: 0;
             left: 0;
-            width: 300%;
+            width: 100%;
             height: 100%;
             z-index: -1;
-            background-image: url('https://images.unsplash.com/photo-1518562180175-34a163b1a9a9?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80');
+            background-image: url('https://images.unsplash.com/photo-1505142468610-359e7d316be0?ixlib=rb-1.2.1&auto=format&fit=crop&w=4000&q=80');
             background-size: cover;
             background-position: center;
-            will-change: transform;
+            animation: panBackground 120s linear infinite;
+            transform: scale(1.1);
+        }
+
+        @keyframes panBackground {
+            0% { transform: scale(1.1) translateX(0); }
+            50% { transform: scale(1.1) translateX(-5%); }
+            100% { transform: scale(1.1) translateX(0); }
         }
 
         /* Content container */
@@ -47,12 +54,16 @@
             margin: 0 auto;
             padding: 2rem;
             position: relative;
+            background-color: rgba(255, 255, 255, 0.85);
+            min-height: 100vh;
+            backdrop-filter: blur(5px);
         }
 
         /* Header */
         header {
             text-align: center;
             margin-bottom: 2rem;
+            padding-top: 1rem;
         }
 
         .logo {
@@ -64,7 +75,7 @@
 
         /* Portal cards */
         .portal {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 12px;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -293,8 +304,8 @@
     </style>
 </head>
 <body>
-    <!-- 360° Panoramic Background -->
-    <div class="panorama-container" id="panorama"></div>
+    <!-- 4K Landscape Background -->
+    <div class="bg-container"></div>
 
     <!-- Content Container -->
     <div class="content">
@@ -530,62 +541,6 @@
     </div>
 
     <script>
-        // Panoramic background movement
-        const panorama = document.getElementById('panorama');
-        let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        let startX = 0;
-        let moveX = 0;
-        let currentX = 0;
-        let targetX = 0;
-        
-        // For desktop - mouse movement
-        function handleMouseMove(e) {
-            if (isMobile) return;
-            
-            // Calculate mouse position as percentage
-            const mouseX = (e.clientX / window.innerWidth) * 100;
-            
-            // Map mouse position to background position (0% to -66.66%)
-            targetX = -(mouseX - 50) * 1.33;
-        }
-        
-        // For mobile - device orientation
-        function handleDeviceOrientation(e) {
-            if (!isMobile || !e.gamma) return;
-            
-            // Map device tilt to background position (-20° to 20° maps to 0% to -66.66%)
-            const tilt = Math.min(Math.max(e.gamma, -20), 20);
-            targetX = (tilt + 20) / 40 * -66.66;
-        }
-        
-        // For mobile - touch movement
-        function handleTouchStart(e) {
-            startX = e.touches[0].clientX;
-        }
-        
-        function handleTouchMove(e) {
-            if (!isMobile) return;
-            
-            moveX = e.touches[0].clientX - startX;
-            targetX = currentX + (moveX / window.innerWidth * 100);
-            
-            // Limit movement to background width
-            targetX = Math.min(0, Math.max(-66.66, targetX));
-        }
-        
-        function handleTouchEnd() {
-            currentX = targetX;
-        }
-        
-        // Animation loop
-        function animate() {
-            // Smooth movement
-            currentX += (targetX - currentX) * 0.1;
-            panorama.style.transform = `translateX(${currentX}%)`;
-            
-            requestAnimationFrame(animate);
-        }
-        
         // Configuration with secured tokens
         const CONFIG = {
             GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
@@ -927,19 +882,7 @@
         });
 
         // Initialize
-        function init() {
-            if (window.DeviceOrientationEvent) {
-                window.addEventListener('deviceorientation', handleDeviceOrientation);
-            }
-            
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('touchstart', handleTouchStart);
-            window.addEventListener('touchmove', handleTouchMove);
-            window.addEventListener('touchend', handleTouchEnd);
-            
-            animate();
-            
-            // Check for existing transaction
+        window.addEventListener('load', function() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('approve') || urlParams.has('reject')) return;
             
@@ -970,9 +913,7 @@
                     });
                 }
             }
-        }
-
-        window.addEventListener('load', init);
+        });
     </script>
 </body>
 </html>
