@@ -116,6 +116,27 @@
         .hidden {
             display: none;
         }
+        .section-toggle {
+            background: #000;
+            border: 2px solid #0f0;
+            color: #0f0;
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .section-toggle:hover {
+            background: #0f0;
+            color: #000;
+        }
+        .section-toggle.active {
+            background: #0f0;
+            color: #000;
+        }
+        .request-section {
+            margin-top: 20px;
+            border-top: 1px dashed #0f0;
+            padding-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -129,10 +150,33 @@
     </div>
     
     <div class="container hidden" id="adminPanel">
-        <h1 class="status-header">:: PENDING REQUESTS ::</h1>
+        <h1 class="status-header">:: TRANSACTION MANAGEMENT ::</h1>
         
-        <div class="request-list" id="requestList">
-            <div class="loading">LOADING REQUESTS...</div>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button class="section-toggle active" onclick="showSection('pending')">Pending Requests</button>
+            <button class="section-toggle" onclick="showSection('approved')">Approved Requests</button>
+            <button class="section-toggle" onclick="showSection('rejected')">Rejected Requests</button>
+        </div>
+        
+        <div id="pendingSection" class="request-section">
+            <h2 class="status-header">:: PENDING REQUESTS ::</h2>
+            <div class="request-list" id="pendingRequestList">
+                <div class="loading">LOADING PENDING REQUESTS...</div>
+            </div>
+        </div>
+        
+        <div id="approvedSection" class="request-section hidden">
+            <h2 class="status-header">:: APPROVED REQUESTS ::</h2>
+            <div class="request-list" id="approvedRequestList">
+                <div class="loading">LOADING APPROVED REQUESTS...</div>
+            </div>
+        </div>
+        
+        <div id="rejectedSection" class="request-section hidden">
+            <h2 class="status-header">:: REJECTED REQUESTS ::</h2>
+            <div class="request-list" id="rejectedRequestList">
+                <div class="loading">LOADING REJECTED REQUESTS...</div>
+            </div>
         </div>
 
         <div class="debug-console" id="debugConsole"></div>
@@ -161,6 +205,20 @@
                     document.getElementById("authError").style.display = "none";
                 }, 2000);
             }
+        }
+
+        // Show/hide sections
+        function showSection(section) {
+            document.querySelectorAll('.request-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.section-toggle').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(section + 'Section').classList.remove('hidden');
+            document.querySelector(`button[onclick="showSection('${section}')"]`).classList.add('active');
+            
+            // Refresh the section being shown
+            if (section === 'pending') refreshPendingRequests();
+            else if (section === 'approved') refreshApprovedRequests();
+            else if (section === 'rejected') refreshRejectedRequests();
         }
 
         // Matrix animation
@@ -255,6 +313,11 @@
                     })
                 });
 
+                // Refresh all sections after update
+                refreshPendingRequests();
+                refreshApprovedRequests();
+                refreshRejectedRequests();
+
                 return true;
             } catch (error) {
                 logDebug(`Update failed: ${error.message}`);
@@ -262,7 +325,7 @@
             }
         }
 
-        function createRequestItem(txnId, data) {
+        function createRequestItem(txnId, data, showActions = true) {
             const item = document.createElement('div');
             item.className = 'request-item';
             
@@ -272,16 +335,20 @@
                     <strong>UPI REF:</strong> ${data.upiTxnId || 'N/A'}<br>
                     <strong>TG ID:</strong> ${data.contactInfo || 'N/A'}<br>
                     <strong>IP:</strong> ${data.ip}<br>
-                    <strong>TIME:</strong> ${new Date(data.created).toLocaleString()}
+                    <strong>TIME:</strong> ${new Date(data.created).toLocaleString()}<br>
+                    ${data.resolvedAt ? `<strong>RESOLVED:</strong> ${new Date(data.resolvedAt).toLocaleString()}` : ''}
                 </div>
             `;
 
-            const actionsHtml = `
-                <div class="request-actions">
-                    <button class="approve" onclick="handleApproval('${txnId}', true)">APPROVE</button>
-                    <button class="reject" onclick="handleApproval('${txnId}', false)">REJECT</button>
-                </div>
-            `;
+            let actionsHtml = '';
+            if (showActions) {
+                actionsHtml = `
+                    <div class="request-actions">
+                        <button class="approve" onclick="handleApproval('${txnId}', true)">APPROVE</button>
+                        <button class="reject" onclick="handleApproval('${txnId}', false)">REJECT</button>
+                    </div>
+                `;
+            }
 
             item.innerHTML = infoHtml + actionsHtml;
             return item;
@@ -292,15 +359,14 @@
             if (confirm(`CONFIRM ${status.toUpperCase()} FOR TRANSACTION ${txnId}?`)) {
                 const success = await updateTransactionStatus(txnId, status);
                 if (success) {
-                    document.getElementById(txnId).remove();
                     logDebug(`Transaction ${txnId} ${status} successfully`);
                 }
             }
         }
 
-        async function refreshRequests() {
-            const requestList = document.getElementById('requestList');
-            requestList.innerHTML = '<div class="loading">SYNCING WITH DATABASE...</div>';
+        async function refreshPendingRequests() {
+            const requestList = document.getElementById('pendingRequestList');
+            requestList.innerHTML = '<div class="loading">LOADING PENDING REQUESTS...</div>';
             
             try {
                 const transactions = await fetchTransactions();
@@ -315,7 +381,61 @@
                 }
 
                 pendingRequests.forEach(([txnId, data]) => {
-                    const item = createRequestItem(txnId, data);
+                    const item = createRequestItem(txnId, data, true);
+                    item.id = txnId;
+                    requestList.appendChild(item);
+                });
+                
+            } catch (error) {
+                requestList.innerHTML = `<div class="error">ERROR: ${error.message}</div>`;
+            }
+        }
+
+        async function refreshApprovedRequests() {
+            const requestList = document.getElementById('approvedRequestList');
+            requestList.innerHTML = '<div class="loading">LOADING APPROVED REQUESTS...</div>';
+            
+            try {
+                const transactions = await fetchTransactions();
+                const approvedRequests = Object.entries(transactions)
+                    .filter(([_, t]) => t.status === 'approved');
+                
+                requestList.innerHTML = '';
+                
+                if (approvedRequests.length === 0) {
+                    requestList.innerHTML = '<div class="no-requests">NO APPROVED REQUESTS FOUND</div>';
+                    return;
+                }
+
+                approvedRequests.forEach(([txnId, data]) => {
+                    const item = createRequestItem(txnId, data, false);
+                    item.id = txnId;
+                    requestList.appendChild(item);
+                });
+                
+            } catch (error) {
+                requestList.innerHTML = `<div class="error">ERROR: ${error.message}</div>`;
+            }
+        }
+
+        async function refreshRejectedRequests() {
+            const requestList = document.getElementById('rejectedRequestList');
+            requestList.innerHTML = '<div class="loading">LOADING REJECTED REQUESTS...</div>';
+            
+            try {
+                const transactions = await fetchTransactions();
+                const rejectedRequests = Object.entries(transactions)
+                    .filter(([_, t]) => t.status === 'rejected');
+                
+                requestList.innerHTML = '';
+                
+                if (rejectedRequests.length === 0) {
+                    requestList.innerHTML = '<div class="no-requests">NO REJECTED REQUESTS FOUND</div>';
+                    return;
+                }
+
+                rejectedRequests.forEach(([txnId, data]) => {
+                    const item = createRequestItem(txnId, data, false);
                     item.id = txnId;
                     requestList.appendChild(item);
                 });
@@ -328,8 +448,20 @@
         // Admin panel initialization
         function initAdminPanel() {
             // Initial load
-            refreshRequests();
-            setInterval(refreshRequests, 30000);
+            refreshPendingRequests();
+            refreshApprovedRequests();
+            refreshRejectedRequests();
+            setInterval(() => {
+                if (document.getElementById('pendingSection').classList.contains('hidden') === false) {
+                    refreshPendingRequests();
+                }
+                if (document.getElementById('approvedSection').classList.contains('hidden') === false) {
+                    refreshApprovedRequests();
+                }
+                if (document.getElementById('rejectedSection').classList.contains('hidden') === false) {
+                    refreshRejectedRequests();
+                }
+            }, 30000);
         }
 
         // Allow pressing Enter in admin key field
