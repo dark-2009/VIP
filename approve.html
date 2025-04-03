@@ -1,5 +1,3 @@
-<!DOCTYPE html>
-<html>
 <head>
     <title>Admin Approval Panel</title>
     <style>
@@ -86,22 +84,6 @@
             background: #f00;
             color: #000;
         }
-        .revoke-all-btn {
-            position: absolute;
-            right: 80px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #000;
-            border: 1px solid #ff9900;
-            color: #ff9900;
-            padding: 2px 8px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .revoke-all-btn:hover {
-            background: #ff9900;
-            color: #000;
-        }
         .request-list {
             flex: 1;
             overflow-y: auto;
@@ -151,15 +133,6 @@
         }
         button.reject:hover {
             background: #f00;
-            color: #000;
-        }
-        button.revoke {
-            background: #000;
-            border: 2px solid #ff9900;
-            color: #ff9900;
-        }
-        button.revoke:hover {
-            background: #ff9900;
             color: #000;
         }
         .debug-console {
@@ -248,7 +221,7 @@
     </div>
     
     <div class="container hidden" id="adminPanel">
-        <h1 style="text-align: center; margin-bottom: 15px; text-shadow: 0 0 10px #0f0;">:: TRANSACTION MANAGEMENT ::</h1>
+        <h1 style="text-align: center; margin-bottom: 15px; text-shadow: 0 0 10px #0f0;">-- AUTHORIZATION GATEWAY --</h1>
         
         <div class="section-toggles">
             <button class="section-toggle active" data-section="pending">Pending</button>
@@ -267,7 +240,6 @@
             <h2 class="section-header">
                 APPROVED REQUESTS
                 <button class="clear-btn" onclick="clearApprovedRequests()">CLEAR ALL</button>
-                <button class="revoke-all-btn" onclick="revokeAllApproved()">REVOKE ALL</button>
             </h2>
             <div class="request-list" id="approvedRequestList">
                 <div class="loading">LOADING APPROVED REQUESTS...</div>
@@ -292,7 +264,8 @@
         const ADMIN_KEY = "2205";
         let isAuthenticated = false;
         
-        // GitHub configuration - REPLACE const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
+        // GitHub configuration - REPLACE THESE WITH YOUR OWN VALUES
+        const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
         const GITHUB_TOKEN = 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub';
 
         // Clear approved requests permanently
@@ -321,76 +294,6 @@
                     logDebug(`❌ Error clearing approved requests: ${error.message}`);
                     const requestList = document.getElementById('approvedRequestList');
                     requestList.innerHTML = '<div class="error">CLEAR FAILED: ' + error.message + '</div>';
-                }
-            }
-        }
-
-        // Revoke all approved requests (set back to pending)
-        async function revokeAllApproved() {
-            if (confirm("⚠️ WARNING: This will REVOKE ACCESS for ALL approved users!\n\nThey will need to go through the payment process again.\n\nAre you sure?")) {
-                const requestList = document.getElementById('approvedRequestList');
-                requestList.innerHTML = '<div class="loading">REVOKING ALL APPROVED REQUESTS...</div>';
-                
-                try {
-                    // Get current transactions
-                    const transactions = await fetchTransactions();
-                    
-                    // Update all approved to pending
-                    for (const [id, transaction] of Object.entries(transactions)) {
-                        if (transaction.status === 'approved') {
-                            transactions[id] = {
-                                ...transaction,
-                                status: 'pending',
-                                revokedAt: new Date().toISOString()
-                            };
-                        }
-                    }
-                    
-                    // Save back to GitHub
-                    await updateGist(transactions);
-                    
-                    // Refresh the view
-                    refreshApprovedRequests();
-                    refreshPendingRequests();
-                    logDebug("✅ Successfully revoked all approved requests");
-                    
-                } catch (error) {
-                    logDebug(`❌ Error revoking approved requests: ${error.message}`);
-                    const requestList = document.getElementById('approvedRequestList');
-                    requestList.innerHTML = '<div class="error">REVOKE FAILED: ' + error.message + '</div>';
-                }
-            }
-        }
-
-        // Revoke single approved request
-        async function revokeRequest(txnId) {
-            if (confirm(`⚠️ WARNING: This will REVOKE ACCESS for transaction ${txnId}!\n\nThe user will need to go through the payment process again.\n\nAre you sure?`)) {
-                try {
-                    // Get current transactions
-                    const transactions = await fetchTransactions();
-                    
-                    // Update the specific transaction
-                    if (transactions[txnId] && transactions[txnId].status === 'approved') {
-                        transactions[txnId] = {
-                            ...transactions[txnId],
-                            status: 'pending',
-                            revokedAt: new Date().toISOString()
-                        };
-                        
-                        // Save back to GitHub
-                        await updateGist(transactions);
-                        
-                        // Refresh the view
-                        refreshApprovedRequests();
-                        refreshPendingRequests();
-                        logDebug(`✅ Successfully revoked transaction ${txnId}`);
-                    } else {
-                        throw new Error('Transaction not found or not approved');
-                    }
-                    
-                } catch (error) {
-                    logDebug(`❌ Error revoking transaction: ${error.message}`);
-                    alert(`Revoke failed: ${error.message}`);
                 }
             }
         }
@@ -615,7 +518,6 @@
                     <strong>IP:</strong> ${data.ip}<br>
                     <strong>Created:</strong> ${new Date(data.created).toLocaleString()}<br>
                     ${data.resolvedAt ? `<strong>Resolved:</strong> ${new Date(data.resolvedAt).toLocaleString()}` : ''}
-                    ${data.revokedAt ? `<strong>Revoked:</strong> ${new Date(data.revokedAt).toLocaleString()}` : ''}
                 </div>
             `;
 
@@ -627,15 +529,6 @@
                         <button class="reject" onclick="handleApproval('${txnId}', false)">REJECT</button>
                     </div>
                 `;
-            } else {
-                // Show revoke button for approved requests
-                if (data.status === 'approved') {
-                    actionsHtml = `
-                        <div class="request-actions">
-                            <button class="revoke" onclick="revokeRequest('${txnId}')">REVOKE</button>
-                        </div>
-                    `;
-                }
             }
 
             item.innerHTML = infoHtml + actionsHtml;
@@ -791,20 +684,11 @@
                             "ip": "192.168.1.2",
                             "created": new Date(Date.now() - 3600000).toISOString(),
                             "status": "pending"
-                        },
-                        "test3": {
-                            "upiTxnId": "TEST345678",
-                            "contactInfo": "test3@example.com",
-                            "ip": "192.168.1.3",
-                            "created": new Date(Date.now() - 7200000).toISOString(),
-                            "status": "approved",
-                            "resolvedAt": new Date(Date.now() - 3600000).toISOString()
                         }
                     };
                     await updateGist(testData);
                     logDebug("Created test transactions");
                     refreshPendingRequests();
-                    refreshApprovedRequests();
                 }
             } catch (error) {
                 logDebug(`Error initializing test data: ${error.message}`);
