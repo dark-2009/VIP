@@ -254,6 +254,7 @@
             <button class="section-toggle active" data-section="pending">Pending</button>
             <button class="section-toggle" data-section="approved">Approved</button>
             <button class="section-toggle" data-section="rejected">Rejected</button>
+            <button class="section-toggle" data-section="revoked">Revoked</button>
         </div>
         
         <div id="pendingSection" class="request-section active">
@@ -286,6 +287,16 @@
             </div>
         </div>
 
+        <div id="revokedSection" class="request-section">
+            <h2 class="section-header">
+                REVOKED REQUESTS
+                <button class="clear-btn" onclick="clearRevokedRequests()">CLEAR ALL</button>
+            </h2>
+            <div class="request-list" id="revokedRequestList">
+                <div class="loading">LOADING REVOKED REQUESTS...</div>
+            </div>
+        </div>
+
         <div class="debug-console" id="debugConsole"></div>
     </div>
 
@@ -297,6 +308,69 @@
         // GitHub configuration - Split token for security
         const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
         const GITHUB_TOKEN = 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub';
+
+        // Initialize matrix animation
+        function initMatrix() {
+            const canvas = document.getElementById('matrix-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            const chars = "01ダークナイトABCDEFGH";
+            const columns = Math.floor(canvas.width / 20);
+            const drops = new Array(columns).fill(1);
+
+            function drawMatrix() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#0F0';
+                ctx.font = '16px monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * 20, drops[i] * 20);
+                    
+                    if (drops[i] * 20 > canvas.height && Math.random() > 0.95) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+            setInterval(drawMatrix, 50);
+        }
+
+        // Initialize matrix on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initMatrix();
+            
+            // Handle Enter key in admin key field
+            document.getElementById("adminKey").addEventListener("keypress", function(e) {
+                if (e.key === "Enter") {
+                    checkAuth();
+                }
+            });
+        });
+
+        // Check authentication
+        function checkAuth() {
+            const inputKey = document.getElementById("adminKey").value;
+            if (inputKey === ADMIN_KEY) {
+                isAuthenticated = true;
+                document.getElementById("authContainer").classList.add("hidden");
+                document.getElementById("adminPanel").classList.remove("hidden");
+                initAdminPanel();
+            } else {
+                document.getElementById("authError").style.display = "block";
+                setTimeout(() => {
+                    document.getElementById("authError").style.display = "none";
+                }, 2000);
+            }
+        }
 
         // Clear approved requests permanently
         async function clearApprovedRequests() {
@@ -328,7 +402,7 @@
             }
         }
 
-        // Revoke all approved requests (set back to pending)
+        // Revoke all approved requests
         async function revokeAllApproved() {
             if (confirm("⚠️ WARNING: This will REVOKE ACCESS for ALL approved users!\n\nThey will need to go through the payment process again.\n\nAre you sure?")) {
                 const requestList = document.getElementById('approvedRequestList');
@@ -337,16 +411,23 @@
                 try {
                     // Get current transactions
                     const transactions = await fetchTransactions();
+                    let updatedCount = 0;
                     
-                    // Update all approved to pending
+                    // Update all approved to revoked
                     for (const [id, transaction] of Object.entries(transactions)) {
                         if (transaction.status === 'approved') {
                             transactions[id] = {
                                 ...transaction,
-                                status: 'pending',
-                                revokedAt: new Date().toISOString()
+                                status: 'revoked',
+                                revokedAt: new Date().toISOString(),
+                                originalStatus: 'approved'
                             };
+                            updatedCount++;
                         }
+                    }
+                    
+                    if (updatedCount === 0) {
+                        throw new Error('No approved requests found to revoke');
                     }
                     
                     // Save back to GitHub
@@ -354,8 +435,8 @@
                     
                     // Refresh the view
                     refreshApprovedRequests();
-                    refreshPendingRequests();
-                    logDebug("✅ Successfully revoked all approved requests");
+                    refreshRevokedRequests();
+                    logDebug(`✅ Successfully revoked ${updatedCount} approved requests`);
                     
                 } catch (error) {
                     logDebug(`❌ Error revoking approved requests: ${error.message}`);
@@ -372,28 +453,60 @@
                     // Get current transactions
                     const transactions = await fetchTransactions();
                     
-                    // Update the specific transaction
-                    if (transactions[txnId] && transactions[txnId].status === 'approved') {
-                        transactions[txnId] = {
-                            ...transactions[txnId],
-                            status: 'pending',
-                            revokedAt: new Date().toISOString()
-                        };
-                        
-                        // Save back to GitHub
-                        await updateGist(transactions);
-                        
-                        // Refresh the view
-                        refreshApprovedRequests();
-                        refreshPendingRequests();
-                        logDebug(`✅ Successfully revoked transaction ${txnId}`);
-                    } else {
+                    // Verify the transaction exists and is approved
+                    if (!transactions[txnId] || transactions[txnId].status !== 'approved') {
                         throw new Error('Transaction not found or not approved');
                     }
+
+                    // Update the transaction
+                    transactions[txnId] = {
+                        ...transactions[txnId],
+                        status: 'revoked',
+                        revokedAt: new Date().toISOString(),
+                        originalStatus: 'approved'
+                    };
+                    
+                    // Save back to GitHub
+                    await updateGist(transactions);
+                    
+                    // Refresh the view
+                    refreshApprovedRequests();
+                    refreshRevokedRequests();
+                    logDebug(`✅ Successfully revoked transaction ${txnId}`);
                     
                 } catch (error) {
                     logDebug(`❌ Error revoking transaction: ${error.message}`);
                     alert(`Revoke failed: ${error.message}`);
+                }
+            }
+        }
+
+        // Clear revoked requests permanently
+        async function clearRevokedRequests() {
+            if (confirm("⚠️ WARNING: This will PERMANENTLY DELETE ALL revoked requests!\n\nThis action cannot be undone.\n\nAre you absolutely sure?")) {
+                const requestList = document.getElementById('revokedRequestList');
+                requestList.innerHTML = '<div class="loading">DELETING ALL REVOKED REQUESTS...</div>';
+                
+                try {
+                    // Get current transactions
+                    const transactions = await fetchTransactions();
+                    
+                    // Filter out revoked transactions
+                    const filteredTransactions = Object.fromEntries(
+                        Object.entries(transactions).filter(([_, t]) => t.status !== 'revoked')
+                    );
+                    
+                    // Save back to GitHub
+                    await updateGist(filteredTransactions);
+                    
+                    // Refresh the view
+                    refreshRevokedRequests();
+                    logDebug("✅ Successfully cleared all revoked requests");
+                    
+                } catch (error) {
+                    logDebug(`❌ Error clearing revoked requests: ${error.message}`);
+                    const requestList = document.getElementById('revokedRequestList');
+                    requestList.innerHTML = '<div class="error">CLEAR FAILED: ' + error.message + '</div>';
                 }
             }
         }
@@ -428,85 +541,6 @@
             }
         }
 
-        // Check authentication
-        function checkAuth() {
-            const inputKey = document.getElementById("adminKey").value;
-            if (inputKey === ADMIN_KEY) {
-                isAuthenticated = true;
-                document.getElementById("authContainer").classList.add("hidden");
-                document.getElementById("adminPanel").classList.remove("hidden");
-                initAdminPanel();
-            } else {
-                document.getElementById("authError").style.display = "block";
-                setTimeout(() => {
-                    document.getElementById("authError").style.display = "none";
-                }, 2000);
-            }
-        }
-
-        // Show/hide sections
-        function showSection(section) {
-            // Hide all sections
-            document.querySelectorAll('.request-section').forEach(el => {
-                el.classList.remove('active');
-            });
-            
-            // Show selected section
-            document.getElementById(section + 'Section').classList.add('active');
-            
-            // Update active button
-            document.querySelectorAll('.section-toggle').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.section === section);
-            });
-            
-            // Refresh the section being shown
-            if (section === 'pending') refreshPendingRequests();
-            else if (section === 'approved') refreshApprovedRequests();
-            else if (section === 'rejected') refreshRejectedRequests();
-        }
-
-        // Initialize section toggle buttons
-        function initSectionToggles() {
-            document.querySelectorAll('.section-toggle').forEach(button => {
-                button.addEventListener('click', () => {
-                    showSection(button.dataset.section);
-                });
-            });
-        }
-
-        // Matrix animation
-        const canvas = document.getElementById('matrix-canvas');
-        const ctx = canvas.getContext('2d');
-        
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        const chars = "01ダークナイトABCDEFGH";
-        const columns = Math.floor(canvas.width / 20);
-        const drops = new Array(columns).fill(1);
-
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#0F0';
-            ctx.font = '16px monospace';
-
-            for (let i = 0; i < drops.length; i++) {
-                const text = chars[Math.floor(Math.random() * chars.length)];
-                ctx.fillText(text, i * 20, drops[i] * 20);
-                
-                if (drops[i] * 20 > canvas.height && Math.random() > 0.95) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
-            }
-        }
-        setInterval(drawMatrix, 50);
-
         // Debug logging
         function logDebug(message) {
             const consoleDiv = document.getElementById('debugConsole');
@@ -516,25 +550,30 @@
 
         // Update GitHub gist
         async function updateGist(content) {
-            const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    files: {
-                        "transactions.json": {
-                            content: JSON.stringify(content, null, 2)
+            try {
+                const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        files: {
+                            "transactions.json": {
+                                content: JSON.stringify(content, null, 2)
+                            }
                         }
-                    }
-                })
-            });
+                    })
+                });
 
-            if (!updateRes.ok) {
-                const errorData = await updateRes.json();
-                logDebug(`GitHub API Error: ${JSON.stringify(errorData)}`);
-                throw new Error('Failed to update transactions');
+                if (!updateRes.ok) {
+                    const errorData = await updateRes.json();
+                    throw new Error(errorData.message || 'Failed to update transactions');
+                }
+                return true;
+            } catch (error) {
+                logDebug(`GitHub API Error: ${error.message}`);
+                throw error;
             }
         }
 
@@ -550,12 +589,10 @@
 
                 if (!gistRes.ok) {
                     const errorData = await gistRes.json();
-                    logDebug(`GitHub API Error: ${JSON.stringify(errorData)}`);
-                    throw new Error('Failed to fetch transactions');
+                    throw new Error(errorData.message || 'Failed to fetch transactions');
                 }
                 
                 const gistData = await gistRes.json();
-                logDebug("Successfully fetched gist data");
                 
                 // Check if transactions.json exists
                 if (!gistData.files || !gistData.files['transactions.json']) {
@@ -564,45 +601,16 @@
                 }
                 
                 try {
-                    const transactions = JSON.parse(gistData.files['transactions.json'].content);
+                    const transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
                     logDebug(`Found ${Object.keys(transactions).length} transactions`);
                     return transactions;
                 } catch (parseError) {
-                    logDebug(`Error parsing transactions: ${parseError.message}`);
+                    logDebug("Invalid JSON data, returning empty object");
                     return {};
                 }
             } catch (error) {
                 logDebug(`Error fetching transactions: ${error.message}`);
                 return {};
-            }
-        }
-
-        async function updateTransactionStatus(txnId, status) {
-            try {
-                logDebug(`Updating transaction ${txnId} to ${status}`);
-                
-                // Get current transactions
-                const transactions = await fetchTransactions();
-                
-                // Update transaction
-                transactions[txnId] = {
-                    ...transactions[txnId],
-                    status: status,
-                    resolvedAt: new Date().toISOString()
-                };
-
-                // Save back to GitHub
-                await updateGist(transactions);
-
-                // Refresh all sections after update
-                refreshPendingRequests();
-                refreshApprovedRequests();
-                refreshRejectedRequests();
-
-                return true;
-            } catch (error) {
-                logDebug(`Update failed: ${error.message}`);
-                return false;
             }
         }
 
@@ -619,6 +627,7 @@
                     <strong>Created:</strong> ${new Date(data.created).toLocaleString()}<br>
                     ${data.resolvedAt ? `<strong>Resolved:</strong> ${new Date(data.resolvedAt).toLocaleString()}` : ''}
                     ${data.revokedAt ? `<strong>Revoked:</strong> ${new Date(data.revokedAt).toLocaleString()}` : ''}
+                    ${data.originalStatus ? `<strong>Originally:</strong> ${data.originalStatus}` : ''}
                 </div>
             `;
 
@@ -648,9 +657,28 @@
         async function handleApproval(txnId, isApproved) {
             const status = isApproved ? 'approved' : 'rejected';
             if (confirm(`CONFIRM ${status.toUpperCase()} FOR TRANSACTION ${txnId}?`)) {
-                const success = await updateTransactionStatus(txnId, status);
-                if (success) {
+                try {
+                    const transactions = await fetchTransactions();
+                    
+                    // Update transaction
+                    transactions[txnId] = {
+                        ...transactions[txnId],
+                        status: status,
+                        resolvedAt: new Date().toISOString()
+                    };
+
+                    // Save back to GitHub
+                    await updateGist(transactions);
+
+                    // Refresh views
+                    refreshPendingRequests();
+                    refreshApprovedRequests();
+                    refreshRejectedRequests();
                     logDebug(`Transaction ${txnId} ${status} successfully`);
+                    
+                } catch (error) {
+                    logDebug(`Update failed: ${error.message}`);
+                    alert(`Operation failed: ${error.message}`);
                 }
             }
         }
@@ -746,12 +774,76 @@
             }
         }
 
+        async function refreshRevokedRequests() {
+            const requestList = document.getElementById('revokedRequestList');
+            requestList.innerHTML = '<div class="loading">LOADING REVOKED REQUESTS...</div>';
+            
+            try {
+                const transactions = await fetchTransactions();
+                const revokedRequests = Object.entries(transactions)
+                    .filter(([_, t]) => t.status === 'revoked')
+                    .map(([id, data]) => ({ id, data }))
+                    .sort((a, b) => {
+                        const dateA = a.data.revokedAt ? new Date(a.data.revokedAt) : new Date(a.data.created);
+                        const dateB = b.data.revokedAt ? new Date(b.data.revokedAt) : new Date(b.data.created);
+                        return dateB - dateA;
+                    });
+                
+                requestList.innerHTML = '';
+                
+                if (revokedRequests.length === 0) {
+                    requestList.innerHTML = '<div class="no-requests">NO REVOKED REQUESTS FOUND</div>';
+                    return;
+                }
+
+                revokedRequests.forEach(({id, data}) => {
+                    const item = createRequestItem(id, data, false);
+                    requestList.appendChild(item);
+                });
+                
+            } catch (error) {
+                requestList.innerHTML = `<div class="error">ERROR: ${error.message}</div>`;
+            }
+        }
+
+        // Show/hide sections
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.request-section').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(section + 'Section').classList.add('active');
+            
+            // Update active button
+            document.querySelectorAll('.section-toggle').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.section === section);
+            });
+            
+            // Refresh the section being shown
+            if (section === 'pending') refreshPendingRequests();
+            else if (section === 'approved') refreshApprovedRequests();
+            else if (section === 'rejected') refreshRejectedRequests();
+            else if (section === 'revoked') refreshRevokedRequests();
+        }
+
+        // Initialize section toggle buttons
+        function initSectionToggles() {
+            document.querySelectorAll('.section-toggle').forEach(button => {
+                button.addEventListener('click', () => {
+                    showSection(button.dataset.section);
+                });
+            });
+        }
+
         // Admin panel initialization
         function initAdminPanel() {
             initSectionToggles();
             refreshPendingRequests();
             refreshApprovedRequests();
             refreshRejectedRequests();
+            refreshRevokedRequests();
             
             // Auto-refresh visible section every 30 seconds
             setInterval(() => {
@@ -764,58 +856,11 @@
                 else if (document.getElementById('rejectedSection').classList.contains('active')) {
                     refreshRejectedRequests();
                 }
+                else if (document.getElementById('revokedSection').classList.contains('active')) {
+                    refreshRevokedRequests();
+                }
             }, 30000);
         }
-
-        // Allow pressing Enter in admin key field
-        document.getElementById("adminKey").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") {
-                checkAuth();
-            }
-        });
-
-        // Initialize with test data if empty (for debugging)
-        async function initializeTestData() {
-            try {
-                const transactions = await fetchTransactions();
-                if (Object.keys(transactions).length === 0) {
-                    logDebug("No transactions found, creating test data");
-                    const testData = {
-                        "test1": {
-                            "upiTxnId": "TEST123456",
-                            "contactInfo": "test1@example.com",
-                            "ip": "192.168.1.1",
-                            "created": new Date().toISOString(),
-                            "status": "pending"
-                        },
-                        "test2": {
-                            "upiTxnId": "TEST789012",
-                            "contactInfo": "test2@example.com",
-                            "ip": "192.168.1.2",
-                            "created": new Date(Date.now() - 3600000).toISOString(),
-                            "status": "pending"
-                        },
-                        "test3": {
-                            "upiTxnId": "TEST345678",
-                            "contactInfo": "test3@example.com",
-                            "ip": "192.168.1.3",
-                            "created": new Date(Date.now() - 7200000).toISOString(),
-                            "status": "approved",
-                            "resolvedAt": new Date(Date.now() - 3600000).toISOString()
-                        }
-                    };
-                    await updateGist(testData);
-                    logDebug("Created test transactions");
-                    refreshPendingRequests();
-                    refreshApprovedRequests();
-                }
-            } catch (error) {
-                logDebug(`Error initializing test data: ${error.message}`);
-            }
-        }
-
-        // Uncomment the next line to automatically create test data when empty
-        // initializeTestData();
     </script>
 </body>
 </html>
