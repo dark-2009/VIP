@@ -1,75 +1,273 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin Approval Panel</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>⍟⍟⍟ DARKKNIGHT ADMIN TERMINAL ⍟⍟⍟</title>
     <style>
-        body { 
-            background: #000;
-            color: #0f0;
-            font-family: monospace;
-            padding: 1rem;
-            margin: 0;
-            overflow: hidden;
+        :root {
+            --matrix-green: #00ff41;
+            --cyber-blue: #00f9ff;
+            --glitch-pink: #ff00ff;
+            --terminal-bg: #0a0a12;
+            --terminal-text: #00ff41;
+            --terminal-border: #00ff4144;
+            --approve-green: #00ff41;
+            --reject-red: #ff0033;
+            --revoke-orange: #ff9900;
         }
-        #matrix-canvas {
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: var(--matrix-green);
+            font-family: 'Courier New', monospace;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #matrix-overlay {
             position: fixed;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
             z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
         }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: rgba(0, 0, 0, 0.8);
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0%,
+                rgba(0, 255, 65, 0.05) 1px,
+                transparent 2px
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: scan 8s linear infinite;
+        }
+
+        @keyframes scan {
+            from { background-position: 0 0; }
+            to { background-position: 0 100%; }
+        }
+
+        .cyber-terminal {
+            width: 95%;
+            max-width: 500px;
+            border: 1px solid var(--terminal-border);
+            background-color: rgba(10, 10, 18, 0.9);
+            box-shadow: 0 0 15px var(--matrix-green),
+                        0 0 30px var(--matrix-green),
+                        inset 0 0 10px var(--terminal-border);
             padding: 20px;
-            border: 1px solid #0f0;
-            box-shadow: 0 0 15px #0f0;
-            height: 90vh;
+            position: relative;
+            overflow: hidden;
+            margin: 10px;
+        }
+
+        #authScreen {
             display: flex;
             flex-direction: column;
         }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--terminal-border);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .terminal-title {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px var(--matrix-green);
+        }
+
+        .terminal-status {
+            color: var(--cyber-blue);
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .typing-effect {
+            border-right: 2px solid var(--matrix-green);
+            white-space: nowrap;
+            overflow: hidden;
+            animation: 
+                typing 3s steps(40, end),
+                blink-caret 0.75s step-end infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--matrix-green) }
+        }
+
+        .access-prompt {
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .access-prompt:before {
+            content: ">_";
+            position: absolute;
+            left: 0;
+            color: var(--cyber-blue);
+        }
+
+        #access-code {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--matrix-green);
+            color: var(--terminal-text);
+            padding: 8px 0 8px 25px;
+            width: calc(100% - 25px);
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        #access-code:focus {
+            box-shadow: 0 1px 0 var(--cyber-blue);
+        }
+
+        .auth-button {
+            background: transparent;
+            color: var(--matrix-green);
+            border: 1px solid var(--matrix-green);
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px auto;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .auth-button:hover {
+            background: var(--matrix-green);
+            color: #000;
+            box-shadow: 0 0 10px var(--matrix-green);
+        }
+
+        .error-message {
+            color: var(--glitch-pink);
+            text-shadow: 0 0 5px var(--glitch-pink);
+            height: 20px;
+            margin-top: 10px;
+            text-align: center;
+            animation: glitch 1s linear infinite;
+        }
+
+        @keyframes glitch {
+            0%, 100% { text-shadow: 0 0 5px var(--glitch-pink); }
+            25% { transform: translate(-1px, 1px); }
+            50% { transform: translate(1px, -1px); }
+            75% { transform: translate(-1px, -1px); }
+        }
+
+        .terminal-footer {
+            border-top: 1px solid var(--terminal-border);
+            margin-top: 20px;
+            padding-top: 10px;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        #adminPanel {
+            display: none;
+            width: 95%;
+            max-width: 800px;
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--matrix-green);
+        }
+
         .section-toggles {
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 15px;
         }
+
         .section-toggle {
-            background: #000;
-            border: 2px solid #0f0;
-            color: #0f0;
+            background: transparent;
+            border: 1px solid var(--matrix-green);
+            color: var(--matrix-green);
             padding: 8px 15px;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.3s;
         }
+
         .section-toggle:hover {
-            background: #0f0;
+            background: var(--matrix-green);
             color: #000;
         }
+
         .section-toggle.active {
-            background: #0f0;
+            background: var(--matrix-green);
             color: #000;
+            box-shadow: 0 0 10px var(--matrix-green);
         }
+
         .request-section {
-            flex: 1;
             display: none;
             flex-direction: column;
-            overflow: hidden;
-            border: 1px solid #0f0;
-            border-radius: 5px;
-            padding: 10px;
+            border: 1px solid var(--terminal-border);
+            border-radius: 3px;
+            padding: 15px;
+            min-height: 300px;
         }
+
         .request-section.active {
             display: flex;
         }
+
         .section-header {
             text-align: center;
-            margin: 0 0 10px 0;
-            padding: 5px;
-            background: rgba(0,255,0,0.1);
-            border-bottom: 1px solid #0f0;
+            margin: 0 0 15px 0;
+            padding: 8px;
+            background: rgba(0,255,65,0.1);
+            border-bottom: 1px solid var(--terminal-border);
             position: relative;
         }
+
         .header-buttons {
             position: absolute;
             right: 10px;
@@ -78,177 +276,182 @@
             display: flex;
             gap: 8px;
         }
+
+        .action-btn {
+            background: transparent;
+            border: 1px solid;
+            padding: 3px 10px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
         .clear-btn {
-            background: #000;
-            border: 1px solid #f00;
-            color: #f00;
-            padding: 2px 8px;
-            font-size: 12px;
-            cursor: pointer;
+            border-color: var(--reject-red);
+            color: var(--reject-red);
         }
+
         .clear-btn:hover {
-            background: #f00;
+            background: var(--reject-red);
             color: #000;
         }
+
         .revoke-all-btn {
-            background: #000;
-            border: 1px solid #ff9900;
-            color: #ff9900;
-            padding: 2px 8px;
-            font-size: 12px;
-            cursor: pointer;
+            border-color: var(--revoke-orange);
+            color: var(--revoke-orange);
         }
+
         .revoke-all-btn:hover {
-            background: #ff9900;
+            background: var(--revoke-orange);
             color: #000;
         }
+
         .request-list {
             flex: 1;
             overflow-y: auto;
             padding-right: 5px;
         }
+
         .request-item {
             background: rgba(0, 0, 0, 0.7);
-            border: 1px solid #0f0;
-            border-radius: 5px;
+            border: 1px solid var(--terminal-border);
+            border-radius: 3px;
             padding: 12px;
             margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
+
         .request-info {
-            flex-grow: 1;
-            color: #0f0;
-            font-size: 14px;
+            color: var(--terminal-text);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
         }
+
+        .request-info strong {
+            color: var(--cyber-blue);
+        }
+
         .request-actions {
             display: flex;
+            justify-content: flex-end;
             gap: 8px;
         }
-        .request-actions button {
+
+        .request-btn {
             padding: 6px 12px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 12px;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s;
+            background: transparent;
+            border: 1px solid;
         }
-        button.approve {
-            background: #000;
-            border: 2px solid #0f0;
-            color: #0f0;
+
+        .approve {
+            border-color: var(--approve-green);
+            color: var(--approve-green);
         }
-        button.approve:hover {
-            background: #0f0;
+
+        .approve:hover {
+            background: var(--approve-green);
             color: #000;
         }
-        button.reject {
-            background: #000;
-            border: 2px solid #f00;
-            color: #f00;
+
+        .reject {
+            border-color: var(--reject-red);
+            color: var(--reject-red);
         }
-        button.reject:hover {
-            background: #f00;
+
+        .reject:hover {
+            background: var(--reject-red);
             color: #000;
         }
-        button.revoke {
-            background: #000;
-            border: 2px solid #ff9900;
-            color: #ff9900;
+
+        .revoke {
+            border-color: var(--revoke-orange);
+            color: var(--revoke-orange);
         }
-        button.revoke:hover {
-            background: #ff9900;
+
+        .revoke:hover {
+            background: var(--revoke-orange);
             color: #000;
         }
-        .debug-console {
+
+        .admin-footer {
+            border-top: 1px solid var(--terminal-border);
             margin-top: 15px;
-            padding: 10px;
-            background: rgba(0,0,0,0.7);
-            border: 1px solid #0f0;
-            max-height: 120px;
-            overflow-y: auto;
-            font-size: 12px;
+            padding-top: 10px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
         }
-        .auth-container {
-            text-align: center;
-            margin-top: 100px;
-        }
-        .auth-input {
-            background: #000;
-            border: 2px solid #0f0;
-            color: #0f0;
-            padding: 10px;
-            font-size: 16px;
-            margin: 10px 0;
-            width: 200px;
-            text-align: center;
-        }
-        .auth-button {
-            background: #000;
-            border: 2px solid #0f0;
-            color: #0f0;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .auth-button:hover {
-            background: #0f0;
-            color: #000;
-        }
-        .auth-error {
-            color: #f00;
-            margin-top: 10px;
-            display: none;
-        }
-        .hidden {
-            display: none;
-        }
+
         .loading {
             text-align: center;
             padding: 20px;
-            color: #0f0;
+            color: var(--matrix-green);
         }
+
         .no-requests {
             text-align: center;
             padding: 20px;
-            color: #888;
+            color: #666;
         }
+
         .error {
-            color: #f00;
+            color: var(--reject-red);
             text-align: center;
             padding: 20px;
         }
-        /* Custom scrollbar */
+
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
+
         ::-webkit-scrollbar-track {
             background: rgba(0,0,0,0.3);
         }
+
         ::-webkit-scrollbar-thumb {
-            background: #0f0;
-            border-radius: 4px;
+            background: var(--matrix-green);
+            border-radius: 3px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
-            background: #0a0;
+            background: #00cc33;
         }
     </style>
 </head>
 <body>
-    <canvas id="matrix-canvas"></canvas>
-    
-    <div class="auth-container" id="authContainer">
-        <h2>ADMIN AUTHENTICATION</h2>
-        <input type="password" id="adminKey" class="auth-input" placeholder="Enter Admin Key">
-        <button onclick="checkAuth()" class="auth-button">AUTHENTICATE</button>
-        <div id="authError" class="auth-error">Invalid Admin Key!</div>
+    <canvas id="matrix-overlay"></canvas>
+    <div class="scanlines"></div>
+
+    <div class="cyber-terminal" id="authScreen">
+        <div class="terminal-header">
+            <div class="terminal-title">DARKKNIGHT ADMIN TERMINAL</div>
+            <div class="terminal-status">[SECURE CHANNEL]</div>
+        </div>
+
+        <div class="typing-effect">Initializing secure connection...</div>
+
+        <div class="access-prompt">
+            <input type="password" id="access-code" placeholder="Enter encryption key" autocomplete="off">
+        </div>
+
+        <button class="auth-button" id="authenticate-btn">AUTHENTICATE</button>
+        <div class="error-message" id="error-message"></div>
+
+        <div class="terminal-footer">
+            <div>Connection: ENCRYPTED (AES-256)</div>
+            <div id="session-id">Session ID: Loading...</div>
+        </div>
     </div>
-    
-    <div class="container hidden" id="adminPanel">
-        <h1 style="text-align: center; margin-bottom: 15px; text-shadow: 0 0 10px #0f0;">:: TRANSACTION MANAGEMENT ::</h1>
+
+    <div class="cyber-terminal" id="adminPanel">
+        <div class="admin-header">
+            <h1>:: TRANSACTION MANAGEMENT ::</h1>
+            <div class="terminal-status">[ACCESS GRANTED]</div>
+        </div>
         
         <div class="section-toggles">
             <button class="section-toggle active" data-section="pending">Pending</button>
@@ -268,8 +471,8 @@
             <h2 class="section-header">
                 APPROVED REQUESTS
                 <div class="header-buttons">
-                    <button class="revoke-all-btn" onclick="revokeAllApproved()">REVOKE ALL</button>
-                    <button class="clear-btn" onclick="clearApprovedRequests()">CLEAR ALL</button>
+                    <button class="action-btn revoke-all-btn" onclick="revokeAllApproved()">REVOKE ALL</button>
+                    <button class="action-btn clear-btn" onclick="clearApprovedRequests()">CLEAR ALL</button>
                 </div>
             </h2>
             <div class="request-list" id="approvedRequestList">
@@ -280,7 +483,7 @@
         <div id="rejectedSection" class="request-section">
             <h2 class="section-header">
                 REJECTED REQUESTS
-                <button class="clear-btn" onclick="clearRejectedRequests()">CLEAR ALL</button>
+                <button class="action-btn clear-btn" onclick="clearRejectedRequests()">CLEAR ALL</button>
             </h2>
             <div class="request-list" id="rejectedRequestList">
                 <div class="loading">LOADING REJECTED REQUESTS...</div>
@@ -290,107 +493,116 @@
         <div id="revokedSection" class="request-section">
             <h2 class="section-header">
                 REVOKED REQUESTS
-                <button class="clear-btn" onclick="clearRevokedRequests()">CLEAR ALL</button>
+                <button class="action-btn clear-btn" onclick="clearRevokedRequests()">CLEAR ALL</button>
             </h2>
             <div class="request-list" id="revokedRequestList">
                 <div class="loading">LOADING REVOKED REQUESTS...</div>
             </div>
         </div>
 
-        <div class="debug-console" id="debugConsole"></div>
+        <div class="admin-footer">
+            <div>Warning: All actions are logged</div>
+            <div id="user-id">User: Loading...</div>
+        </div>
     </div>
 
     <script>
-        // Admin key configuration
-        const ADMIN_KEY = "2205";
-        let isAuthenticated = false;
+        const canvas = document.getElementById('matrix-overlay');
+        const ctx = canvas.getContext('2d');
         
-        // GitHub configuration - Split token for security
+        function resizeCanvas() {
+            canvas.width = document.documentElement.clientWidth;
+            canvas.height = document.documentElement.clientHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        const chars = "01ダークナイトABCDEFGH";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.random() * -100;
+        }
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff41';
+            ctx.font = fontSize + 'px monospace';
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                
+                drops[i]++;
+            }
+        }
+        
+        setInterval(drawMatrix, 50);
+
+        function generateSecureID() {
+            const prefix = "DK-";
+            const timeStamp = Date.now().toString(36).toUpperCase();
+            const randomHash = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase();
+            return `${prefix}${timeStamp}-${randomHash.slice(0, 5)}`;
+        }
+
+        const ADMIN_KEY = "2205";
+        const authScreen = document.getElementById('authScreen');
+        const adminPanel = document.getElementById('adminPanel');
+        const accessCode = document.getElementById('access-code');
+        const authBtn = document.getElementById('authenticate-btn');
+        const errorMsg = document.getElementById('error-message');
+        const sessionIdElement = document.getElementById('session-id');
+        const userIdElement = document.getElementById('user-id');
+
+        const sessionId = generateSecureID();
+        const userId = `USER-${Math.floor(Math.random() * 9000) + 1000}`;
+        
+        sessionIdElement.textContent = `Session ID: ${sessionId}`;
+        userIdElement.textContent = `User: ${userId}`;
+
+        authBtn.addEventListener('click', () => {
+            if (accessCode.value === ADMIN_KEY) {
+                authScreen.style.display = "none";
+                adminPanel.style.display = "block";
+                errorMsg.textContent = "";
+                initAdminPanel();
+            } else {
+                errorMsg.textContent = "ERROR: INVALID ENCRYPTION KEY";
+                accessCode.value = "";
+            }
+        });
+
+        accessCode.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                authBtn.click();
+            }
+        });
+
         const GIST_ID = '49ac5568baf72fb3b31558d248ce7f57';
         const GITHUB_TOKEN = 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub';
 
-        // Initialize matrix animation
-        function initMatrix() {
-            const canvas = document.getElementById('matrix-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            function resizeCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-
-            const chars = "01ダークナイトABCDEFGH";
-            const columns = Math.floor(canvas.width / 20);
-            const drops = new Array(columns).fill(1);
-
-            function drawMatrix() {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#0F0';
-                ctx.font = '16px monospace';
-
-                for (let i = 0; i < drops.length; i++) {
-                    const text = chars[Math.floor(Math.random() * chars.length)];
-                    ctx.fillText(text, i * 20, drops[i] * 20);
-                    
-                    if (drops[i] * 20 > canvas.height && Math.random() > 0.95) {
-                        drops[i] = 0;
-                    }
-                    drops[i]++;
-                }
-            }
-            setInterval(drawMatrix, 50);
-        }
-
-        // Initialize matrix on load
-        document.addEventListener('DOMContentLoaded', function() {
-            initMatrix();
-            
-            // Handle Enter key in admin key field
-            document.getElementById("adminKey").addEventListener("keypress", function(e) {
-                if (e.key === "Enter") {
-                    checkAuth();
-                }
-            });
-        });
-
-        // Check authentication
-        function checkAuth() {
-            const inputKey = document.getElementById("adminKey").value;
-            if (inputKey === ADMIN_KEY) {
-                isAuthenticated = true;
-                document.getElementById("authContainer").classList.add("hidden");
-                document.getElementById("adminPanel").classList.remove("hidden");
-                initAdminPanel();
-            } else {
-                document.getElementById("authError").style.display = "block";
-                setTimeout(() => {
-                    document.getElementById("authError").style.display = "none";
-                }, 2000);
-            }
-        }
-
-        // Clear approved requests permanently
         async function clearApprovedRequests() {
             if (confirm("⚠️ WARNING: This will PERMANENTLY DELETE ALL approved requests!\n\nThis action cannot be undone.\n\nAre you absolutely sure?")) {
                 const requestList = document.getElementById('approvedRequestList');
                 requestList.innerHTML = '<div class="loading">DELETING ALL APPROVED REQUESTS...</div>';
                 
                 try {
-                    // Get current transactions
                     const transactions = await fetchTransactions();
-                    
-                    // Filter out approved transactions
                     const filteredTransactions = Object.fromEntries(
                         Object.entries(transactions).filter(([_, t]) => t.status !== 'approved')
                     );
                     
-                    // Save back to GitHub
                     await updateGist(filteredTransactions);
-                    
-                    // Refresh the view
                     refreshApprovedRequests();
                     logDebug("✅ Successfully cleared all approved requests");
                     
@@ -402,18 +614,15 @@
             }
         }
 
-        // Revoke all approved requests
         async function revokeAllApproved() {
             if (confirm("⚠️ WARNING: This will REVOKE ACCESS for ALL approved users!\n\nThey will need to go through the payment process again.\n\nAre you sure?")) {
                 const requestList = document.getElementById('approvedRequestList');
                 requestList.innerHTML = '<div class="loading">REVOKING ALL APPROVED REQUESTS...</div>';
                 
                 try {
-                    // Get current transactions
                     const transactions = await fetchTransactions();
                     let updatedCount = 0;
                     
-                    // Update all approved to revoked
                     for (const [id, transaction] of Object.entries(transactions)) {
                         if (transaction.status === 'approved') {
                             transactions[id] = {
@@ -430,10 +639,7 @@
                         throw new Error('No approved requests found to revoke');
                     }
                     
-                    // Save back to GitHub
                     await updateGist(transactions);
-                    
-                    // Refresh the view
                     refreshApprovedRequests();
                     refreshRevokedRequests();
                     logDebug(`✅ Successfully revoked ${updatedCount} approved requests`);
@@ -446,19 +652,15 @@
             }
         }
 
-        // Revoke single approved request
         async function revokeRequest(txnId) {
             if (confirm(`⚠️ WARNING: This will REVOKE ACCESS for transaction ${txnId}!\n\nThe user will need to go through the payment process again.\n\nAre you sure?`)) {
                 try {
-                    // Get current transactions
                     const transactions = await fetchTransactions();
                     
-                    // Verify the transaction exists and is approved
                     if (!transactions[txnId] || transactions[txnId].status !== 'approved') {
                         throw new Error('Transaction not found or not approved');
                     }
 
-                    // Update the transaction
                     transactions[txnId] = {
                         ...transactions[txnId],
                         status: 'revoked',
@@ -466,10 +668,7 @@
                         originalStatus: 'approved'
                     };
                     
-                    // Save back to GitHub
                     await updateGist(transactions);
-                    
-                    // Refresh the view
                     refreshApprovedRequests();
                     refreshRevokedRequests();
                     logDebug(`✅ Successfully revoked transaction ${txnId}`);
@@ -481,25 +680,18 @@
             }
         }
 
-        // Clear revoked requests permanently
         async function clearRevokedRequests() {
             if (confirm("⚠️ WARNING: This will PERMANENTLY DELETE ALL revoked requests!\n\nThis action cannot be undone.\n\nAre you absolutely sure?")) {
                 const requestList = document.getElementById('revokedRequestList');
                 requestList.innerHTML = '<div class="loading">DELETING ALL REVOKED REQUESTS...</div>';
                 
                 try {
-                    // Get current transactions
                     const transactions = await fetchTransactions();
-                    
-                    // Filter out revoked transactions
                     const filteredTransactions = Object.fromEntries(
                         Object.entries(transactions).filter(([_, t]) => t.status !== 'revoked')
                     );
                     
-                    // Save back to GitHub
                     await updateGist(filteredTransactions);
-                    
-                    // Refresh the view
                     refreshRevokedRequests();
                     logDebug("✅ Successfully cleared all revoked requests");
                     
@@ -511,25 +703,18 @@
             }
         }
 
-        // Clear rejected requests permanently
         async function clearRejectedRequests() {
             if (confirm("⚠️ WARNING: This will PERMANENTLY DELETE ALL rejected requests!\n\nThis action cannot be undone.\n\nAre you absolutely sure?")) {
                 const requestList = document.getElementById('rejectedRequestList');
                 requestList.innerHTML = '<div class="loading">DELETING ALL REJECTED REQUESTS...</div>';
                 
                 try {
-                    // Get current transactions
                     const transactions = await fetchTransactions();
-                    
-                    // Filter out rejected transactions
                     const filteredTransactions = Object.fromEntries(
                         Object.entries(transactions).filter(([_, t]) => t.status !== 'rejected')
                     );
                     
-                    // Save back to GitHub
                     await updateGist(filteredTransactions);
-                    
-                    // Refresh the view
                     refreshRejectedRequests();
                     logDebug("✅ Successfully cleared all rejected requests");
                     
@@ -541,14 +726,10 @@
             }
         }
 
-        // Debug logging
         function logDebug(message) {
-            const consoleDiv = document.getElementById('debugConsole');
-            consoleDiv.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            console.log(message);
         }
 
-        // Update GitHub gist
         async function updateGist(content) {
             try {
                 const updateRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
@@ -594,7 +775,6 @@
                 
                 const gistData = await gistRes.json();
                 
-                // Check if transactions.json exists
                 if (!gistData.files || !gistData.files['transactions.json']) {
                     logDebug("No transactions.json file found, creating empty structure");
                     return {};
@@ -635,16 +815,15 @@
             if (showActions) {
                 actionsHtml = `
                     <div class="request-actions">
-                        <button class="approve" onclick="handleApproval('${txnId}', true)">APPROVE</button>
-                        <button class="reject" onclick="handleApproval('${txnId}', false)">REJECT</button>
+                        <button class="request-btn approve" onclick="handleApproval('${txnId}', true)">APPROVE</button>
+                        <button class="request-btn reject" onclick="handleApproval('${txnId}', false)">REJECT</button>
                     </div>
                 `;
             } else {
-                // Show revoke button for approved requests
                 if (data.status === 'approved') {
                     actionsHtml = `
                         <div class="request-actions">
-                            <button class="revoke" onclick="revokeRequest('${txnId}')">REVOKE</button>
+                            <button class="request-btn revoke" onclick="revokeRequest('${txnId}')">REVOKE</button>
                         </div>
                     `;
                 }
@@ -660,17 +839,13 @@
                 try {
                     const transactions = await fetchTransactions();
                     
-                    // Update transaction
                     transactions[txnId] = {
                         ...transactions[txnId],
                         status: status,
                         resolvedAt: new Date().toISOString()
                     };
 
-                    // Save back to GitHub
                     await updateGist(transactions);
-
-                    // Refresh views
                     refreshPendingRequests();
                     refreshApprovedRequests();
                     refreshRejectedRequests();
@@ -806,29 +981,23 @@
             }
         }
 
-        // Show/hide sections
         function showSection(section) {
-            // Hide all sections
             document.querySelectorAll('.request-section').forEach(el => {
                 el.classList.remove('active');
             });
             
-            // Show selected section
             document.getElementById(section + 'Section').classList.add('active');
             
-            // Update active button
             document.querySelectorAll('.section-toggle').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.section === section);
             });
             
-            // Refresh the section being shown
             if (section === 'pending') refreshPendingRequests();
             else if (section === 'approved') refreshApprovedRequests();
             else if (section === 'rejected') refreshRejectedRequests();
             else if (section === 'revoked') refreshRevokedRequests();
         }
 
-        // Initialize section toggle buttons
         function initSectionToggles() {
             document.querySelectorAll('.section-toggle').forEach(button => {
                 button.addEventListener('click', () => {
@@ -837,7 +1006,6 @@
             });
         }
 
-        // Admin panel initialization
         function initAdminPanel() {
             initSectionToggles();
             refreshPendingRequests();
@@ -845,7 +1013,6 @@
             refreshRejectedRequests();
             refreshRevokedRequests();
             
-            // Auto-refresh visible section every 30 seconds
             setInterval(() => {
                 if (document.getElementById('pendingSection').classList.contains('active')) {
                     refreshPendingRequests();
