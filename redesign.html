@@ -2,558 +2,538 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXCLUSIVE VIP ACCESS</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VIP SECURE ACCESS</title>
     <style>
         :root {
-            --gold: #D4AF37;
-            --dark-gold: #B8860B;
-            --ivory: #FFFFF0;
-            --charcoal: #333333;
-            --light-gray: #F5F5F5;
+            --neon-green: #30ff70;
+            --neon-blue: #00a8ff;
+            --neon-purple: #b86bff;
+            --neon-red: #ff375f;
+            --dark-bg: #000;
+            --darker-bg: #111;
         }
 
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            font-family: 'Courier New', monospace;
+            text-align: center;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: manipulation;
             overflow-x: hidden;
-            color: var(--charcoal);
         }
 
-        /* 4K Landscape Background */
-        .bg-container {
+        #matrix {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-            background-image: url('https://images.unsplash.com/photo-1505142468610-359e7d316be0?ixlib=rb-1.2.1&auto=format&fit=crop&w=4000&q=80');
-            background-size: cover;
-            background-position: center;
-            animation: panBackground 120s linear infinite;
-            transform: scale(1.1);
+            z-index: -2;
+            opacity: 0.15;
+            pointer-events: none;
         }
 
-        @keyframes panBackground {
-            0% { transform: scale(1.1) translateX(0); }
-            50% { transform: scale(1.1) translateX(-5%); }
-            100% { transform: scale(1.1) translateX(0); }
+        .falling-letters {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            opacity: 0.7;
+            pointer-events: none;
+            overflow: hidden;
         }
 
-        /* Content container */
-        .content {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 2rem;
+        .falling-letter {
+            position: absolute;
+            color: var(--neon-green);
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            opacity: 0;
+            animation: fall linear infinite;
+            text-shadow: 0 0 15px currentColor;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.9; }
+            90% { opacity: 0.9; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .container {
             position: relative;
-            background-color: rgba(255, 255, 255, 0.85);
-            min-height: 100vh;
-            backdrop-filter: blur(5px);
-        }
-
-        /* Header */
-        header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-top: 1rem;
-        }
-
-        .logo {
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--gold);
-            margin-bottom: 0.5rem;
-        }
-
-        /* Portal cards */
-        .portal {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .portal-title {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            text-align: center;
-            color: var(--charcoal);
-        }
-
-        .portal-subtitle {
-            font-size: 1rem;
-            color: rgba(51,51,51,0.7);
-            margin-bottom: 2rem;
-            text-align: center;
-            line-height: 1.6;
-            font-weight: 300;
-        }
-
-        /* Form elements */
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--charcoal);
-            font-weight: 500;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 1rem;
-            border: 1px solid rgba(0,0,0,0.1);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
-        }
-
-        /* Buttons */
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(to right, var(--gold), var(--dark-gold));
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
-        }
-
-        .btn-secondary {
-            background: white;
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            margin-top: 1rem;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(212, 175, 55, 0.05);
-        }
-
-        /* Platform Grid */
-        .platform-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .platform-card {
-            background: white;
-            border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .platform-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border-color: var(--gold);
-        }
-
-        .platform-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: var(--gold);
-        }
-
-        .platform-name {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .platform-desc {
-            font-size: 0.9rem;
-            color: rgba(51,51,51,0.7);
-            line-height: 1.5;
-        }
-
-        /* Configuration Panels */
-        .config-panel {
-            background: white;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-
-        .config-item {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .config-label {
-            font-size: 0.9rem;
-            color: var(--charcoal);
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .config-value {
-            font-size: 1.1rem;
-            color: var(--charcoal);
-            word-break: break-all;
-        }
-
-        /* Links */
-        .link {
-            display: inline-block;
-            color: var(--gold);
-            text-decoration: none;
-            margin-top: 0.5rem;
-            font-weight: 500;
-            border-bottom: 1px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .link:hover {
-            border-bottom-color: var(--gold);
-        }
-
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            color: var(--gold);
-            text-decoration: none;
-            margin-top: 1rem;
-            font-weight: 500;
-        }
-
-        .back-btn svg {
-            margin-right: 0.5rem;
-            transition: transform 0.3s ease;
-        }
-
-        .back-btn:hover svg {
-            transform: translateX(-5px);
-        }
-
-        /* Status Indicator */
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--gold);
-            margin-right: 0.5rem;
-        }
-
-        /* QR Code Container */
-        .qr-container {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            display: inline-block;
-            margin: 1rem 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        /* Hidden class */
-        .hidden {
+            padding: 25px;
+            max-width: 90%;
+            width: 400px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 16px;
+            z-index: 2;
             display: none;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .content {
-                padding: 1rem;
-            }
-            
-            .portal {
-                padding: 1.5rem;
-            }
-            
-            .platform-grid {
-                grid-template-columns: 1fr;
-            }
+        .container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            padding: 3px;
+            background: linear-gradient(
+                135deg,
+                var(--neon-purple),
+                var(--neon-blue),
+                var(--neon-green),
+                var(--neon-blue),
+                var(--neon-purple)
+            );
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: borderFlow 4s linear infinite;
+            background-size: 300% 300%;
+            z-index: -1;
+        }
+
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: var(--neon-green);
+        }
+
+        input, .button {
+            width: 90%;
+            padding: 12px;
+            margin: 12px 0;
+            border: 2px solid var(--neon-green);
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--neon-green);
+            font-size: 1em;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: var(--neon-green);
+            color: black;
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        .error {
+            color: var(--neon-red);
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 55, 95, 0.1);
+            border: 1px solid var(--neon-red);
+            border-radius: 5px;
+            display: none;
+        }
+
+        .panel-selector {
+            text-align: left;
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid var(--neon-purple);
+            border-radius: 8px;
+        }
+
+        .panel-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+
+        .panel-name {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .panel-action {
+            padding: 5px 10px;
+            border: 1px solid var(--neon-green);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .panel-action.add {
+            background: rgba(48, 255, 112, 0.1);
+        }
+
+        .panel-action.remove {
+            background: rgba(255, 55, 95, 0.1);
+            border-color: var(--neon-red);
+        }
+
+        .selected-panels {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .selected-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+
+        .qr-code {
+            max-width: 200px;
+            margin: 15px auto;
+            border: 2px solid var(--neon-green);
+            border-radius: 5px;
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .secondary-btn {
+            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--neon-blue);
+        }
+
+        /* New Key Container Styles */
+        .status-info {
+            text-align: left;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            border-left: 3px solid var(--neon-green);
+        }
+
+        .status-line {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .attempts-counter {
+            color: var(--neon-red);
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .key-input-container {
+            margin: 20px 0;
+        }
+
+        .key-input-label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            color: var(--neon-blue);
+        }
+
+        /* Loading dots */
+        .loading-dots::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+            display: inline-block;
+            width: 20px;
+            text-align: left;
+        }
+        @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+        }
+
+        /* Coupon Section */
+        .coupon-section {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px dashed var(--neon-purple);
+            border-radius: 8px;
+        }
+
+        .coupon-input {
+            width: 70% !important;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .apply-coupon-btn {
+            width: 25% !important;
+            display: inline-block;
+            padding: 12px 5px !important;
+        }
+
+        .discount-applied {
+            color: var(--neon-green);
+            margin-top: 10px;
+            display: none;
+        }
+
+        .coupon-error {
+            color: var(--neon-red);
+            margin-top: 10px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- 4K Landscape Background -->
-    <div class="bg-container"></div>
+    <div class="falling-letters" id="fallingLetters"></div>
+    <canvas id="matrix"></canvas>
 
-    <!-- Content Container -->
-    <div class="content">
-        <header>
-            <div class="logo">VIP ACCESS</div>
-        </header>
+    <!-- Key Container -->
+    <div class="container" id="keyContainer">
+        <h2>VIP ACCESS [SECURED]</h2>
         
-        <!-- Key Authentication -->
-        <div class="portal" id="keyContainer">
-            <h1 class="portal-title">SECURE PORTAL</h1>
-            <p class="portal-subtitle">Enter your exclusive credentials to proceed</p>
-            
+        <div class="status-info">
+            <div class="status-line">Initializing Secure Connection...</div>
+            <div class="status-line">Connection: <span style="color:var(--neon-green)">ENCRYPTED (AES-256)</span></div>
+            <div class="status-line">Session ID: <span id="sessionId">DK-M9LGG00S-SYA78</span></div>
+        </div>
+        
+        <div class="key-input-container">
+            <span class="key-input-label">Enter Encryption Key</span>
             <form id="keyForm">
-                <div class="form-group">
-                    <label for="accessKey" class="form-label">ACCESS KEY</label>
-                    <input type="password" id="accessKey" class="form-input" placeholder="Enter your VIP key" required>
-                </div>
-                
-                <button type="submit" class="btn">AUTHENTICATE</button>
+                <input type="password" id="accessKey" placeholder="Enter Access Key" required>
+                <button type="submit" class="button">AUTHENTICATE</button>
             </form>
+            <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">GET KEY</button>
         </div>
         
-        <!-- Service Selection -->
-        <div class="portal hidden" id="optionsContainer">
-            <h1 class="portal-title">SELECT SERVICE</h1>
-            <p class="portal-subtitle">Choose your exclusive access level</p>
-            
-            <div class="platform-grid">
-                <div class="platform-card" id="vipBtn">
-                    <div class="platform-icon">🛡️</div>
-                    <h3 class="platform-name">VIP PROXY</h3>
-                    <p class="platform-desc">Premium private proxy with dedicated resources and enhanced security</p>
-                </div>
-                
-                <div class="platform-card" id="freeBtn">
-                    <div class="platform-icon">🔓</div>
-                    <h3 class="platform-name">PRIVATE ACCESS</h3>
-                    <p class="platform-desc">Exclusive private network access with priority support</p>
-                </div>
+        <p class="error" id="keyError">❌ Invalid Access Key!</p>
+        <div class="attempts-counter" id="attemptsCounter">Attempts remaining: 5</div>
+    </div>
+
+    <!-- Service Selection -->
+    <div class="container" id="optionsContainer">
+        <h2>Select Service</h2>
+        <button class="button" id="vipBtn">VIP PROXY (₹3000)</button>
+        <button class="button" id="proxyPanelBtn">PROXY + PANEL (₹3500)</button>
+        <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">GET HELP</button>
+    </div>
+
+    <!-- Panel Selection -->
+    <div class="container" id="panelSelectionContainer">
+        <h2>Select Panels</h2>
+        <div class="panel-selector">
+            <div class="panel-item">
+                <span class="panel-name">1. Chest Head</span>
+                <span class="panel-action add" data-name="Chest Head" data-price="1000">ADD</span>
+            </div>
+            <div class="panel-item">
+                <span class="panel-name">2. Neck Head</span>
+                <span class="panel-action add" data-name="Neck Head" data-price="500">ADD</span>
+            </div>
+            <div class="panel-item">
+                <span class="panel-name">3. Shoulder Head</span>
+                <span class="panel-action add" data-name="Shoulder Head" data-price="700">ADD</span>
+            </div>
+            <div class="panel-item">
+                <span class="panel-name">4. Magic Bullet</span>
+                <span class="panel-action add" data-name="Magic Bullet" data-price="350">ADD</span>
+            </div>
+            <div class="panel-item">
+                <span class="panel-name">5. NPC + 100% Head</span>
+                <span class="panel-action add" data-name="NPC + 100% Head" data-price="850">ADD</span>
             </div>
         </div>
+
+        <!-- Coupon Section -->
+        <div class="coupon-section">
+            <h3>Discount Coupon</h3>
+            <input type="text" id="couponCode" class="coupon-input" placeholder="Enter coupon code">
+            <button class="button apply-coupon-btn" id="applyCouponBtn">APPLY</button>
+            <p class="discount-applied" id="discountApplied">Discount applied: ₹<span id="discountAmount">0</span></p>
+            <p class="coupon-error" id="couponError">Invalid coupon code!</p>
+        </div>
+
+        <div class="selected-panels">
+            <h3>Selected Items:</h3>
+            <div id="selectedItemsList">
+                <div class="selected-item">
+                    <span>Proxy</span>
+                    <span>₹2500</span>
+                </div>
+            </div>
+            <div class="selected-item" style="margin-top: 15px; font-weight: bold;">
+                <span>Total:</span>
+                <span id="totalAmount">₹2500</span>
+            </div>
+        </div>
+        <button class="button" id="continueToPayment">Continue to Payment</button>
+        <p class="error" id="panelError" style="display: none;">Please select at least one panel to continue!</p>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="container" id="contactInfoContainer">
+        <h2>Contact Information</h2>
+        <p>Enter your Telegram @username or Phone Number:</p>
+        <form id="contactInfoForm">
+            <input type="text" id="userContact" placeholder="Telegram @username or Phone No." required>
+            <button type="submit" class="button">Continue to Payment</button>
+        </form>
+    </div>
+
+    <!-- Payment Container -->
+    <div class="container" id="paymentContainer">
+        <h2 id="paymentTitle">VIP PROXY Activation (₹3000)</h2>
+        <div class="payment-option">
+            <p>Scan PhonePe QR Code To Pay:</p>
+            <img src="https://dark-2009.github.io/VIP/photo_2025-03-26_18-35-51.jpg" alt="PhonePe QR Code" class="qr-code">
+        </div>
+        <div class="payment-option">
+            <p>Or Send Payment To Our UPI ID:</p>
+            <p><strong>withonly.vinay@ybl</strong></p>
+        </div>
+        <p>Your Unique Transaction ID:</p>
+        <div id="txnIdDisplay">DK-XXXX-XXXX</div>
         
-        <!-- Contact Information -->
-        <div class="portal hidden" id="contactInfoContainer">
-            <h1 class="portal-title">CONTACT VERIFICATION</h1>
-            <p class="portal-subtitle">Provide your contact details for secure access</p>
-            
-            <form id="contactInfoForm">
-                <div class="form-group">
-                    <label for="userContact" class="form-label">TELEGRAM OR PHONE</label>
-                    <input type="text" id="userContact" class="form-input" placeholder="@username or +1234567890" required>
-                </div>
-                
-                <button type="submit" class="btn">CONTINUE TO PAYMENT</button>
-            </form>
+        <form id="verifyForm">
+            <input type="text" id="upiTxnInput" placeholder="Enter UTR Number" required>
+            <button type="submit" class="button">Submit for Approval</button>
+        </form>
+        <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">
+            Contact Support
+        </button>
+    </div>
+
+    <!-- Approval Container -->
+    <div class="container" id="approvalContainer">
+        <h2>🔄 Approval Pending</h2>
+        <h3>If You Have Done The Payment Then Wait Atmost 12 Hours To Get Approved</h3>
+        <h3>Come Back After 12 Hours !</h3>
+        <div id="approvalStatus">
+            <p>Transaction ID: <strong id="pendingTxnId"></strong></p>
+            <p>Your IP: <span id="userIp"></span></p>
+            <p>Status: <span id="statusText" style="color:yellow">Pending approval</span></p>
+            <p>Last checked: <span id="lastChecked">Never</span></p>
         </div>
-        
-        <!-- Payment -->
-        <div class="portal hidden" id="paymentContainer">
-            <h1 class="portal-title">VIP ACTIVATION</h1>
-            <p class="portal-subtitle">₹100 one-time payment for exclusive access</p>
-            
-            <div class="form-group">
-                <label class="form-label">TRANSACTION ID</label>
-                <div class="config-value" id="txnIdDisplay">DK-XXXX-XXXX</div>
-            </div>
-            
-            <div class="form-group" style="text-align: center;">
-                <label class="form-label">PAYMENT METHOD</label>
-                <div class="qr-container">
-                    <img src="https://dark-2009.github.io/VIP/photo_2025-03-26_18-35-51.jpg" alt="Payment QR Code" width="180">
-                </div>
-                <p class="portal-subtitle">Scan with PhonePe or send to:</p>
-                <div class="config-value">withonly.vinay@ybl</div>
-            </div>
-            
-            <form id="verifyForm">
-                <div class="form-group">
-                    <label for="upiTxnInput" class="form-label">TRANSACTION ID</label>
-                    <input type="text" id="upiTxnInput" class="form-input" placeholder="Enter UPI transaction reference" required>
-                </div>
-                
-                <button type="submit" class="btn">SUBMIT FOR APPROVAL</button>
-            </form>
-        </div>
-        
-        <!-- Approval Status -->
-        <div class="portal hidden" id="approvalContainer">
-            <h1 class="portal-title">APPROVAL STATUS</h1>
-            <p class="portal-subtitle">Your request is being processed</p>
-            
-            <div class="config-panel">
-                <div class="config-item">
-                    <div class="config-label">TRANSACTION ID</div>
-                    <div class="config-value" id="pendingTxnId">-</div>
-                </div>
-                
-                <div class="config-item">
-                    <div class="config-label">YOUR IP ADDRESS</div>
-                    <div class="config-value" id="userIp">Loading...</div>
-                </div>
-                
-                <div class="config-item">
-                    <div class="config-label">STATUS</div>
-                    <div class="config-value">
-                        <span class="status-indicator"></span>
-                        <span id="statusText">Pending approval</span>
-                    </div>
-                </div>
-                
-                <div class="config-item" style="border-bottom: none;">
-                    <div class="config-label">LAST CHECKED</div>
-                    <div class="config-value" id="lastChecked">Never</div>
-                </div>
-            </div>
-            
-            <p class="portal-subtitle" style="margin: 1.5rem 0;">Please allow up to 12 hours for manual verification</p>
-            
-            <button class="btn" id="checkApprovalBtn">CHECK STATUS</button>
-            <button class="btn btn-secondary" id="privateAccessBtn2">PRIVATE ACCESS</button>
-        </div>
-        
-        <!-- Platform Selection -->
-        <div class="portal hidden" id="platformContainer">
-            <h1 class="portal-title">DEVICE SETUP</h1>
-            <p class="portal-subtitle">Select your platform for configuration</p>
-            
-            <div class="platform-grid">
-                <div class="platform-card" id="androidBtn">
-                    <div class="platform-icon">🤖</div>
-                    <h3 class="platform-name">ANDROID</h3>
-                    <p class="platform-desc">Configuration for Android devices</p>
-                </div>
-                
-                <div class="platform-card" id="iosBtn">
-                    <div class="platform-icon">🍏</div>
-                    <h3 class="platform-name">iOS</h3>
-                    <p class="platform-desc">Configuration for Apple devices</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Android Configuration -->
-        <div class="portal hidden" id="androidDetails">
-            <h1 class="portal-title">ANDROID CONFIG</h1>
-            <p class="portal-subtitle">Setup instructions for your Android device</p>
-            
-            <div class="config-panel">
-                <div class="config-item">
-                    <div class="config-label">SERVER IP</div>
-                    <div class="config-value">3.111.157.12</div>
-                </div>
-                
-                <div class="config-item">
-                    <div class="config-label">PORT</div>
-                    <div class="config-value">1001</div>
-                </div>
-                
-                <div class="config-item">
-                    <div class="config-label">CERTIFICATE</div>
-                    <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="link">Download Certificate</a>
-                </div>
-                
-                <div class="config-item">
-                    <div class="config-label">ROOT MANAGER</div>
-                    <a href="https://bit.ly/rootcertikibo" class="link">Download Root Certificate Manager</a>
-                </div>
-                
-                <div class="config-item">
-                    <div class="config-label">PROXYDROID</div>
-                    <a href="https://bit.ly/proxydroidkibo" class="link">Download Proxydroid App</a>
-                </div>
-                
-                <div class="config-item" style="border-bottom: none;">
-                    <div class="config-label">VIDEO GUIDE</div>
-                    <a href="https://youtu.be/v-hiAJ3u4P4?si=2URDsIJ9m4xiYowe" class="link">Watch Setup Tutorial</a>
-                </div>
-            </div>
-            
-            <a href="#" class="back-btn" id="backToPlatformFromAndroid">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                BACK TO SELECTION
-            </a>
-            
-            <button class="btn btn-secondary" style="margin-top: 1.5rem;" id="androidPrivateBtn">PRIVATE ACCESS</button>
-        </div>
-        
-        <!-- iOS Configuration -->
-        <div class="portal hidden" id="iosDetails">
-            <h1 class="portal-title">iOS CONFIG</h1>
-            <p class="portal-subtitle">Setup instructions for your iOS device</p>
-            
-            <div class="config-panel">
-                <div class="config-item">
-                    <div class="config-label">SERVER IP</div>
-                    <div class="config-value">13.201.57.94</div>
-                </div>
-                
-                <div class="config-item">
-                    <div class="config-label">PORT</div>
-                    <div class="config-value">1001</div>
-                </div>
-                
-                <div class="config-item">
-                    <div class="config-label">CERTIFICATE</div>
-                    <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="link">Download Certificate</a>
-                </div>
-                
-                <div class="config-item" style="border-bottom: none;">
-                    <div class="config-label">SETUP INSTRUCTIONS</div>
-                    <ol style="padding-left: 1.5rem; color: rgba(51,51,51,0.7); line-height: 1.8; margin-top: 0.5rem;">
-                        <li style="margin-bottom: 0.5rem;">Install the certificate</li>
-                        <li style="margin-bottom: 0.5rem;">Go to WiFi settings</li>
-                        <li style="margin-bottom: 0.5rem;">Configure proxy with the IP and Port</li>
-                        <li>Or use Shadow Rocket app with these details</li>
-                    </ol>
-                </div>
-            </div>
-            
-            <a href="#" class="back-btn" id="backToPlatformFromIos">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                BACK TO SELECTION
-            </a>
-            
-            <button class="btn btn-secondary" style="margin-top: 1.5rem;" id="iosPrivateBtn">PRIVATE ACCESS</button>
-        </div>
+        <button class="button pulse" id="checkApprovalBtn">Check Approval Status</button>
+        <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">
+            Contact Support
+        </button>
     </div>
 
     <script>
+        // Matrix Background
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const chars = "01ダークナイトABCDEFGHIJKLMNOPQRSTUVWXYZ$#%&@*";
+        const columns = Math.floor(canvas.width / 15);
+        const drops = new Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.font = '14px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                const opacity = Math.random() * 0.5 + 0.5;
+                const speed = Math.random() * 0.5 + 0.5;
+                
+                const greenValue = Math.floor(Math.random() * 155) + 100;
+                ctx.fillStyle = `rgba(0, ${greenValue}, 0, ${opacity})`;
+                
+                ctx.fillText(text, i * 15, drops[i] * 15);
+                
+                if (drops[i] * 15 > canvas.height || Math.random() > 0.95) {
+                    drops[i] = 0;
+                }
+                drops[i] += speed;
+            }
+        }
+        
+        function animateMatrix() {
+            drawMatrix();
+            requestAnimationFrame(animateMatrix);
+        }
+        
+        animateMatrix();
+
+        // Falling Letters
+        const fallingLettersContainer = document.getElementById('fallingLetters');
+        const characters = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        
+        function createFallingLetter() {
+            const letter = document.createElement('div');
+            letter.className = 'falling-letter';
+            letter.textContent = characters.charAt(Math.floor(Math.random() * characters.length));
+            
+            const left = Math.random() * 100;
+            letter.style.left = `${left}%`;
+            
+            const duration = 5 + Math.random() * 10;
+            letter.style.animationDuration = `${duration}s`;
+            
+            const delay = Math.random() * 5;
+            letter.style.animationDelay = `${delay}s`;
+            
+            const colors = ['30ff70', '00a8ff', 'b86bff'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            letter.style.color = `#${color}`;
+            letter.style.opacity = '0.8';
+            
+            fallingLettersContainer.appendChild(letter);
+            
+            setTimeout(() => {
+                letter.remove();
+            }, duration * 1000);
+        }
+        
+        setInterval(createFallingLetter, 200);
+
         // Configuration with secured tokens
         const CONFIG = {
-            GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
-            GIST_TOKEN: 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub',
-            BOT_TOKEN: '779394' + '5096:AAEnx2' + 'qKx3CoNBNJg3dEY17JRocPN0Ehf94',
+            BOT_TOKEN: '7793945096:AAEnx2qKx3CoNBNJg3dEY17JRocPN0Ehf94',
             CHAT_IDS: ['6800292901', '6287314531'],
             ACCESS_KEY: "DARKXVNIZ",
             APPROVE_URL: "https://dark-2009.github.io/VIP/approve.html",
             REJECT_URL: "https://dark-2009.github.io/VIP/reject.html",
-            PROXY_DETAILS: {
-                IP: "13.201.57.94",
-                PORT: "1001",
-                CERT_URL: "https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert"
+            PROXY_PRICE: 3000,
+            PROXY_PANEL_PRICE: 3500,
+            COUPONS: {
+                "VINAY300": 300,
+                "DARK420": 420
             }
         };
 
@@ -567,7 +547,8 @@
             approved: false,
             contactInfo: null,
             lastChecked: null,
-            serviceSelected: null
+            serviceSelected: null,
+            discountApplied: 0
         };
 
         function updateTransaction(update) {
@@ -575,166 +556,61 @@
             localStorage.setItem(storageKey, JSON.stringify(currentTransaction));
         }
 
-        // Save transaction to Gist
-        async function saveTransaction() {
+        // Send Telegram notification for failed attempts
+        async function sendFailedAttemptNotification(attemptsLeft) {
+            const ip = await getUserIP();
+            const message = `🚨 Failed Login Attempt%0A` +
+                         `📌 Attempts Left: ${attemptsLeft}%0A` +
+                         `🌐 IP: ${ip}%0A` +
+                         `⏰ ${new Date().toLocaleString()}`;
+
             try {
-                const gistRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
-                    headers: {
-                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-
-                if (!gistRes.ok) {
-                    const error = await gistRes.json();
-                    throw new Error(`GitHub API Error: ${error.message}`);
+                // Send to each chat ID
+                for (const chatId of CONFIG.CHAT_IDS) {
+                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`);
                 }
-
-                const gistData = await gistRes.json();
-                
-                let transactions = {};
-                if (gistData.files && gistData.files['transactions.json']) {
-                    transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
-                }
-
-                transactions[currentTransaction.txnId] = {
-                    status: 'pending',
-                    ip: currentTransaction.userIp,
-                    upiTxnId: currentTransaction.upiTxnId,
-                    contactInfo: currentTransaction.contactInfo,
-                    service: currentTransaction.serviceSelected,
-                    timestamp: new Date().toISOString(),
-                    created: new Date().toISOString()
-                };
-
-                const updateRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/vnd.github.v3+json'
-                    },
-                    body: JSON.stringify({
-                        description: `Transaction update - ${new Date().toLocaleString()}`,
-                        files: {
-                            "transactions.json": {
-                                content: JSON.stringify(transactions, null, 2)
-                            }
-                        }
-                    })
-                });
-
-                if (!updateRes.ok) {
-                    const error = await updateRes.json();
-                    throw new Error(`Failed to update Gist: ${error.message}`);
-                }
-
                 return true;
             } catch (error) {
-                console.error('Transaction submission failed:', error);
+                console.error('Failed to send Telegram notification:', error);
                 return false;
             }
         }
 
-        // Check transaction status
-        async function checkTransactionStatus(txnId) {
-            try {
-                const response = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`);
-                const data = await response.json();
-                const transactions = JSON.parse(data.files['transactions.json'].content);
-                return transactions[txnId] || { status: 'pending' };
-            } catch (error) {
-                console.error("Error checking transaction:", error);
-                return { status: 'error' };
-            }
-        }
-
-        // Check approval status
-        async function checkApprovalStatus() {
-            const checkBtn = document.getElementById("checkApprovalBtn");
-            const statusText = document.getElementById("statusText");
-            const lastCheckedEl = document.getElementById("lastChecked");
-            
-            checkBtn.disabled = true;
-            checkBtn.textContent = "CHECKING...";
-            
-            try {
-                const now = new Date();
-                lastCheckedEl.textContent = now.toLocaleTimeString();
-                updateTransaction({ lastChecked: now.toISOString() });
-
-                // Check if already approved locally
-                if (currentTransaction.approved) {
-                    statusText.textContent = "Approved";
-                    document.querySelector('.status-indicator').style.background = "#4CAF50";
-                    
-                    // Show platform selection for VIP PROXY service
-                    if (currentTransaction.serviceSelected === 'VIP PROXY') {
-                        setTimeout(() => {
-                            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-                            document.getElementById("platformContainer").classList.remove('hidden');
-                        }, 1500);
-                    }
-                    return;
-                }
-
-                // Check with server
-                const status = await checkTransactionStatus(currentTransaction.txnId);
-                
-                if (status.status === 'approved') {
-                    updateTransaction({ status: 'approved', approved: true });
-                    statusText.textContent = "Approved";
-                    document.querySelector('.status-indicator').style.background = "#4CAF50";
-                    
-                    // Show platform selection for VIP PROXY service
-                    if (currentTransaction.serviceSelected === 'VIP PROXY') {
-                        setTimeout(() => {
-                            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-                            document.getElementById("platformContainer").classList.remove('hidden');
-                        }, 1500);
-                    }
-                } else if (status.status === 'rejected') {
-                    updateTransaction({ status: 'rejected' });
-                    statusText.textContent = "Rejected";
-                    document.querySelector('.status-indicator').style.background = "#F44336";
-                    alert('❌ Payment was rejected by admin');
-                    localStorage.removeItem(storageKey);
-                    document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-                    document.getElementById("keyContainer").classList.remove('hidden');
-                } else {
-                    statusText.textContent = "Pending approval";
-                    document.querySelector('.status-indicator').style.background = "#FFC107";
-                    alert("Admin has not approved yet. Please wait for manual approval.");
-                }
-            } catch (error) {
-                console.error("Approval check failed:", error);
-                alert("Error checking status. Please try again.");
-            } finally {
-                checkBtn.disabled = false;
-                checkBtn.textContent = "CHECK STATUS";
-            }
-        }
-
-        // Send Telegram notification
-        async function sendTelegramNotification() {
+        // Send Telegram notification for payment submission
+        async function sendPaymentNotification() {
             const message = `🔄 New Payment Verification%0A` +
                          `💳 Transaction ID: ${currentTransaction.txnId}%0A` +
-                         `📱 UPI Reference: ${currentTransaction.upiTxnId}%0A` +
+                         `📱 UTR Number: ${currentTransaction.upiTxnId}%0A` +
                          `👤 Contact: ${currentTransaction.contactInfo}%0A` +
                          `🌐 IP: ${currentTransaction.userIp}%0A` +
                          `🔧 Service: ${currentTransaction.serviceSelected}%0A` +
+                         `💰 Amount: ₹${totalAmount - currentTransaction.discountApplied}%0A` +
+                         `🎫 Discount: ₹${currentTransaction.discountApplied}%0A` +
                          `⏰ ${new Date().toLocaleString()}%0A%0A` +
-                         `<a href="${CONFIG.APPROVE_URL}">⚡️ AUTHORIZATION GATEWAY</a>`;
+                         `<a href="${CONFIG.APPROVE_URL}?txn=${currentTransaction.txnId}">⚡️ APPROVE</a> | ` +
+                         `<a href="${CONFIG.REJECT_URL}?txn=${currentTransaction.txnId}">❌ REJECT</a>`;
 
             try {
+                // Send to each chat ID
                 for (const chatId of CONFIG.CHAT_IDS) {
                     await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML&disable_web_page_preview=true`);
                 }
                 return true;
             } catch (error) {
-                console.error('Telegram notification failed:', error);
+                console.error('Failed to send Telegram notification:', error);
                 return false;
             }
+        }
+
+        // Check transaction status (simulated)
+        async function checkTransactionStatus() {
+            // In a real implementation, you would check with your backend
+            // For demo purposes, we'll simulate checking
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve({ status: 'pending' }); // Always returns pending in this demo
+                }, 1500);
+            });
         }
 
         // Get user IP
@@ -759,30 +635,250 @@
             return result;
         }
 
-        // Event Listeners
-        document.getElementById("keyForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            if (document.getElementById("accessKey").value === CONFIG.ACCESS_KEY) {
-                document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-                document.getElementById("optionsContainer").classList.remove('hidden');
+        // Check approval status
+        async function checkApprovalStatus() {
+            const checkBtn = document.getElementById("checkApprovalBtn");
+            const statusText = document.getElementById("statusText");
+            const lastCheckedEl = document.getElementById("lastChecked");
+            
+            checkBtn.disabled = true;
+            checkBtn.textContent = "Checking";
+            checkBtn.classList.add("loading");
+            
+            try {
+                const now = new Date();
+                lastCheckedEl.textContent = now.toLocaleTimeString();
+                updateTransaction({ lastChecked: now.toISOString() });
+
+                // Check if already approved locally
+                if (currentTransaction.approved) {
+                    statusText.textContent = "Approved";
+                    statusText.style.color = "#0f0";
+                    return;
+                }
+
+                // Check with server
+                const status = await checkTransactionStatus();
+                
+                if (status.status === 'approved') {
+                    updateTransaction({ status: 'approved', approved: true });
+                    statusText.textContent = "Approved";
+                    statusText.style.color = "#0f0";
+                } else if (status.status === 'rejected') {
+                    updateTransaction({ status: 'rejected' });
+                    statusText.textContent = "Rejected";
+                    statusText.style.color = "red";
+                    alert('❌ Payment was rejected by admin');
+                    localStorage.removeItem(storageKey);
+                    showContainer('keyContainer');
+                } else {
+                    statusText.textContent = "Pending approval";
+                    statusText.style.color = "yellow";
+                }
+            } catch (error) {
+                console.error("Approval check failed:", error);
+                alert("Error checking status. Please try again.");
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = "Check Approval Status";
+                checkBtn.classList.remove("loading");
+            }
+        }
+
+        // Panel Selection Logic
+        const selectedPanels = [];
+        const proxyPrice = 2500;
+        let totalAmount = proxyPrice;
+        let attemptsLeft = 5;
+        let discountApplied = 0;
+
+        document.querySelectorAll('.panel-action').forEach(button => {
+            button.addEventListener('click', function() {
+                const panelName = this.dataset.name;
+                const panelPrice = parseInt(this.dataset.price);
+                
+                if (this.classList.contains('add')) {
+                    // Add panel
+                    selectedPanels.push({ name: panelName, price: panelPrice });
+                    totalAmount += panelPrice;
+                    
+                    // Update button
+                    this.textContent = 'REMOVE';
+                    this.classList.remove('add');
+                    this.classList.add('remove');
+                } else {
+                    // Remove panel
+                    const index = selectedPanels.findIndex(p => p.name === panelName);
+                    if (index !== -1) {
+                        totalAmount -= selectedPanels[index].price;
+                        selectedPanels.splice(index, 1);
+                    }
+                    
+                    // Update button
+                    this.textContent = 'ADD';
+                    this.classList.remove('remove');
+                    this.classList.add('add');
+                }
+                
+                updateSelectedItems();
+            });
+        });
+
+        // Coupon Application
+        document.getElementById("applyCouponBtn").addEventListener("click", function() {
+            const couponCode = document.getElementById("couponCode").value.trim().toUpperCase();
+            const discountAppliedEl = document.getElementById("discountApplied");
+            const couponErrorEl = document.getElementById("couponError");
+            
+            if (CONFIG.COUPONS[couponCode]) {
+                discountApplied = CONFIG.COUPONS[couponCode];
+                currentTransaction.discountApplied = discountApplied;
+                updateTransaction(currentTransaction);
+                
+                document.getElementById("discountAmount").textContent = discountApplied;
+                discountAppliedEl.style.display = "block";
+                couponErrorEl.style.display = "none";
+                
+                updateSelectedItems();
             } else {
-                alert("Invalid access key. Please try again.");
+                discountApplied = 0;
+                currentTransaction.discountApplied = 0;
+                updateTransaction(currentTransaction);
+                
+                discountAppliedEl.style.display = "none";
+                couponErrorEl.style.display = "block";
+                
+                updateSelectedItems();
             }
         });
 
-        document.getElementById("vipBtn").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'VIP PROXY' });
+        function updateSelectedItems() {
+            const selectedItemsList = document.getElementById('selectedItemsList');
+            const totalAmountEl = document.getElementById('totalAmount');
             
-            if (currentTransaction.approved) {
-                document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-                document.getElementById("platformContainer").classList.remove('hidden');
+            // Clear existing items except proxy
+            selectedItemsList.innerHTML = `
+                <div class="selected-item">
+                    <span>Proxy</span>
+                    <span>₹${proxyPrice}</span>
+                </div>
+            `;
+            
+            // Add selected panels
+            selectedPanels.forEach(panel => {
+                const item = document.createElement('div');
+                item.className = 'selected-item';
+                item.innerHTML = `
+                    <span>${panel.name}</span>
+                    <span>₹${panel.price}</span>
+                `;
+                selectedItemsList.appendChild(item);
+            });
+            
+            // Add discount if applied
+            if (discountApplied > 0) {
+                const discountItem = document.createElement('div');
+                discountItem.className = 'selected-item';
+                discountItem.innerHTML = `
+                    <span>Discount</span>
+                    <span>-₹${discountApplied}</span>
+                `;
+                selectedItemsList.appendChild(discountItem);
+            }
+            
+            // Update total
+            const finalAmount = Math.max(0, totalAmount - discountApplied);
+            totalAmountEl.textContent = `₹${finalAmount}`;
+        }
+
+        // Page Navigation
+        const containers = document.querySelectorAll('.container');
+        
+        function showContainer(id) {
+            containers.forEach(container => {
+                container.style.display = container.id === id ? 'block' : 'none';
+            });
+        }
+
+        // Initialize - Show key container first
+        showContainer('keyContainer');
+
+        // Generate random session ID
+        function generateSessionId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = 'DK-';
+            for (let i = 0; i < 8; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            result += '-';
+            for (let i = 0; i < 4; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        document.getElementById('sessionId').textContent = generateSessionId();
+
+        // Authentication
+        document.getElementById("keyForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const keyInput = document.getElementById("accessKey");
+            const keyError = document.getElementById("keyError");
+            const attemptsCounter = document.getElementById("attemptsCounter");
+            
+            if (keyInput.value === CONFIG.ACCESS_KEY) {
+                keyError.style.display = "none";
+                showContainer('optionsContainer');
+            } else {
+                attemptsLeft--;
+                attemptsCounter.textContent = `Attempts remaining: ${attemptsLeft}`;
+                keyError.style.display = "block";
+                
+                // Send failed attempt notification
+                await sendFailedAttemptNotification(attemptsLeft);
+                
+                keyInput.value = '';
+                keyInput.focus();
+                
+                if (attemptsLeft <= 0) {
+                    keyInput.disabled = true;
+                    document.querySelector('#keyForm button').disabled = true;
+                    keyError.textContent = "❌ Maximum attempts reached. Please contact support.";
+                    setTimeout(() => {
+                        window.open('https://t.me/alone120122', '_blank');
+                    }, 2000);
+                }
+            }
+        });
+
+        // Service Selection
+        document.getElementById("vipBtn").addEventListener("click", function() {
+            totalAmount = CONFIG.PROXY_PRICE;
+            discountApplied = 0;
+            document.getElementById("paymentTitle").textContent = `VIP PROXY Activation (₹${totalAmount})`;
+            updateTransaction({ serviceSelected: 'VIP PROXY', discountApplied: 0 });
+            showContainer('contactInfoContainer');
+        });
+
+        document.getElementById("proxyPanelBtn").addEventListener("click", function() {
+            totalAmount = proxyPrice; // Start with proxy price
+            discountApplied = 0;
+            updateSelectedItems();
+            updateTransaction({ serviceSelected: 'PROXY + PANEL', discountApplied: 0 });
+            showContainer('panelSelectionContainer');
+        });
+
+        document.getElementById("continueToPayment").addEventListener("click", function() {
+            if (selectedPanels.length === 0) {
+                document.getElementById("panelError").style.display = "block";
                 return;
             }
-            
-            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-            document.getElementById("contactInfoContainer").classList.remove('hidden');
+            document.getElementById("panelError").style.display = "none";
+            document.getElementById("paymentTitle").textContent = `PROXY + PANEL Activation (₹${totalAmount - discountApplied})`;
+            showContainer('contactInfoContainer');
         });
 
+        // Contact Info Submission
         document.getElementById("contactInfoForm").addEventListener("submit", function(e) {
             e.preventDefault();
             const contactInfo = document.getElementById("userContact").value.trim();
@@ -791,126 +887,74 @@
                 return;
             }
             
-            updateTransaction({ contactInfo });
-            
+            // Generate transaction ID
             const txnId = generateTxnId();
-            updateTransaction({ txnId });
+            updateTransaction({ txnId, contactInfo });
             document.getElementById("txnIdDisplay").textContent = txnId;
             
-            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-            document.getElementById("paymentContainer").classList.remove('hidden');
+            showContainer('paymentContainer');
         });
 
-        document.getElementById("freeBtn").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
-            window.location.href = "https://t.me/darkxvniz";
-        });
-
+        // Payment Submission
         document.getElementById("verifyForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const upiTxnId = document.getElementById("upiTxnInput").value.trim();
             if (!upiTxnId) {
-                alert("Please enter a valid UPI Transaction ID");
+                alert("Please enter a valid UTR Number");
                 return;
             }
 
             const submitBtn = document.querySelector('#verifyForm button');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'PROCESSING...';
+            submitBtn.innerHTML = 'Processing <span class="loading-dots"></span>';
 
             try {
                 const userIp = await getUserIP();
                 updateTransaction({ upiTxnId, userIp, status: 'pending' });
                 
-                const saved = await saveTransaction();
-                if (!saved) throw new Error('Failed to save transaction');
-
-                await sendTelegramNotification();
+                // Send Telegram notification
+                const notificationSent = await sendPaymentNotification();
+                if (!notificationSent) {
+                    throw new Error('Failed to send notification to admin');
+                }
 
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = userIp;
-                document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-                document.getElementById("approvalContainer").classList.remove('hidden');
+                showContainer('approvalContainer');
 
             } catch (error) {
                 console.error('Transaction submission failed:', error);
-                alert(`Submission failed: ${error.message || 'Unknown error'}`);
+                alert(`Error: ${error.message || 'Failed to submit transaction. Please try again or contact support.'}`);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'SUBMIT FOR APPROVAL';
+                submitBtn.textContent = 'Submit for Approval';
             }
         });
 
+        // Check Approval Status
         document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
 
-        document.getElementById("androidBtn").addEventListener("click", function() {
-            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-            document.getElementById("androidDetails").classList.remove('hidden');
-        });
-
-        document.getElementById("iosBtn").addEventListener("click", function() {
-            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-            document.getElementById("iosDetails").classList.remove('hidden');
-        });
-
-        document.getElementById("backToPlatformFromAndroid").addEventListener("click", function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-            document.getElementById("platformContainer").classList.remove('hidden');
-        });
-
-        document.getElementById("backToPlatformFromIos").addEventListener("click", function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.portal').forEach(c => c.classList.add('hidden'));
-            document.getElementById("platformContainer").classList.remove('hidden');
-        });
-
-        // Private access buttons
-        document.getElementById("privateAccessBtn2").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
-            window.location.href = "https://t.me/darkxvniz";
-        });
-
-        document.getElementById("androidPrivateBtn").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
-            window.location.href = "https://t.me/darkxvniz";
-        });
-
-        document.getElementById("iosPrivateBtn").addEventListener("click", function() {
-            updateTransaction({ serviceSelected: 'PRIVATE ACCESS' });
-            window.location.href = "https://t.me/darkxvniz";
-        });
-
-        // Initialize
-        window.addEventListener('load', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('approve') || urlParams.has('reject')) return;
-            
+        // Initialize transaction status if returning
+        window.addEventListener('load', async function() {
+            // Check if already approved
             if (currentTransaction.approved) {
-                document.getElementById("keyContainer").classList.add("hidden");
-                
-                if (currentTransaction.serviceSelected === 'VIP PROXY') {
-                    document.getElementById("platformContainer").classList.remove("hidden");
-                } else {
-                    document.getElementById("optionsContainer").classList.remove("hidden");
-                }
+                showContainer('optionsContainer');
                 return;
             }
             
+            // If pending transaction exists
             if (currentTransaction.txnId && currentTransaction.status === 'pending') {
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = currentTransaction.userIp || "Loading...";
                 document.getElementById("lastChecked").textContent = currentTransaction.lastChecked ? 
                     new Date(currentTransaction.lastChecked).toLocaleTimeString() : "Never";
                 
-                document.getElementById("keyContainer").classList.add("hidden");
-                document.getElementById("approvalContainer").classList.remove("hidden");
+                showContainer('approvalContainer');
                 
                 if (!currentTransaction.userIp || currentTransaction.userIp === "IP_NOT_FOUND") {
-                    getUserIP().then(ip => {
-                        updateTransaction({ userIp: ip });
-                        document.getElementById("userIp").textContent = ip;
-                    });
+                    const ip = await getUserIP();
+                    updateTransaction({ userIp: ip });
+                    document.getElementById("userIp").textContent = ip;
                 }
             }
         });
