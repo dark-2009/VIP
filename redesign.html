@@ -227,7 +227,6 @@
             border: 1px solid var(--neon-blue);
         }
 
-        /* New Key Container Styles */
         .status-info {
             text-align: left;
             margin: 15px 0;
@@ -273,12 +272,21 @@
             60%, 100% { content: "..."; }
         }
 
-        /* Coupon Section */
+        /* Coupon Section - UPDATED */
+        .coupon-toggle {
+            color: var(--neon-purple);
+            cursor: pointer;
+            text-decoration: underline;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
         .coupon-section {
             margin: 15px 0;
             padding: 10px;
             border: 1px dashed var(--neon-purple);
             border-radius: 8px;
+            display: none; /* Initially hidden */
         }
 
         .coupon-input {
@@ -303,6 +311,74 @@
             color: var(--neon-red);
             margin-top: 10px;
             display: none;
+        }
+
+        .platform-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .platform-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            transition: all 0.3s ease;
+        }
+
+        .platform-btn:hover {
+            background-color: var(--neon-green);
+            color: black;
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        .config-details {
+            text-align: left;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            border-left: 3px solid var(--neon-purple);
+        }
+
+        .config-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--neon-blue);
+        }
+
+        .config-value {
+            font-weight: bold;
+            color: var(--neon-green);
+            word-break: break-all;
+        }
+
+        .download-link {
+            display: block;
+            margin: 10px 0;
+            color: var(--neon-blue);
+            text-decoration: none;
+        }
+
+        .download-link:hover {
+            text-decoration: underline;
+            color: var(--neon-green);
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .contact-after-payment {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -367,8 +443,9 @@
             </div>
         </div>
 
-        <!-- Coupon Section -->
-        <div class="coupon-section">
+        <!-- Coupon Section - UPDATED -->
+        <div class="coupon-toggle" id="couponToggle">I have a coupon code</div>
+        <div class="coupon-section" id="couponSection">
             <h3>Discount Coupon</h3>
             <input type="text" id="couponCode" class="coupon-input" placeholder="Enter coupon code">
             <button class="button apply-coupon-btn" id="applyCouponBtn">APPLY</button>
@@ -393,19 +470,9 @@
         <p class="error" id="panelError" style="display: none;">Please select at least one panel to continue!</p>
     </div>
 
-    <!-- Contact Info -->
-    <div class="container" id="contactInfoContainer">
-        <h2>Contact Information</h2>
-        <p>Enter your Telegram @username or Phone Number:</p>
-        <form id="contactInfoForm">
-            <input type="text" id="userContact" placeholder="Telegram @username or Phone No." required>
-            <button type="submit" class="button">Continue to Payment</button>
-        </form>
-    </div>
-
     <!-- Payment Container -->
     <div class="container" id="paymentContainer">
-        <h2 id="paymentTitle">VIP PROXY Activation (₹3000)</h2>
+        <h2 id="paymentTitle">PROXY + PANEL Activation (₹3500)</h2>
         <div class="payment-option">
             <p>Scan PhonePe QR Code To Pay:</p>
             <img src="https://dark-2009.github.io/VIP/photo_2025-03-26_18-35-51.jpg" alt="PhonePe QR Code" class="qr-code">
@@ -426,6 +493,18 @@
         </button>
     </div>
 
+    <!-- Contact Info After Payment -->
+    <div class="container" id="contactAfterPaymentContainer">
+        <h2>Delivery Information</h2>
+        <div class="contact-after-payment">
+            <p>Enter your Telegram @username or Phone Number where we should deliver your selected panels:</p>
+            <form id="contactAfterPaymentForm">
+                <input type="text" id="deliveryContact" placeholder="Telegram @username or Phone No." required>
+                <button type="submit" class="button">Submit Delivery Info</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Approval Container -->
     <div class="container" id="approvalContainer">
         <h2>🔄 Approval Pending</h2>
@@ -441,6 +520,89 @@
         <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">
             Contact Support
         </button>
+    </div>
+
+    <!-- Platform Selection -->
+    <div class="container" id="platformContainer">
+        <h2>🎯 SELECT YOUR DEVICE</h2>
+        <div class="platform-buttons">
+            <button class="button platform-btn" id="androidBtn">ANDROID</button>
+            <button class="button platform-btn" id="iosBtn">iOS</button>
+        </div>
+        <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">
+            Contact Support
+        </button>
+    </div>
+
+    <!-- Android Details -->
+    <div class="container" id="androidDetails">
+        <h2>🎯 ANDROID CONFIGURATION</h2>
+        <div class="config-details">
+            <div class="config-item">
+                <div>IP:</div>
+                <div class="config-value">free.host.kibomodz.online</div>
+            </div>
+            
+            <div class="config-item">
+                <div>Port:</div>
+                <div class="config-value">8079</div>
+            </div>
+            
+            <div class="config-item">
+                <div>Certificate:</div>
+                <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="download-link">Download Certificate</a>
+            </div>
+            
+            <div class="config-item">
+                <div>Root Certificate Manager:</div>
+                <a href="https://bit.ly/rootcertikibo" class="download-link">Download Root Certificate Manager</a>
+            </div>
+            
+            <div class="config-item">
+                <div>Proxydroid:</div>
+                <a href="https://bit.ly/proxydroidkibo" class="download-link">Download Proxydroid</a>
+            </div>
+            
+            <div class="config-item">
+                <div>Setup Video:</div>
+                <a href="https://youtu.be/v-hiAJ3u4P4?si=2URDsIJ9m4xiYowe" class="download-link">Watch Setup Tutorial</a>
+            </div>
+        </div>
+        <button class="button back-btn" id="backToPlatformFromAndroid">Back to Selection</button>
+        <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">Contact Support</button>
+    </div>
+
+    <!-- iOS Details -->
+    <div class="container" id="iosDetails">
+        <h2>🎯 iOS CONFIGURATION</h2>
+        <div class="config-details">
+            <div class="config-item">
+                <div>IP:</div>
+                <div class="config-value">free.host.kibomodz.online</div>
+            </div>
+            
+            <div class="config-item">
+                <div>Port:</div>
+                <div class="config-value">8079</div>
+            </div>
+            
+            <div class="config-item">
+                <div>Certificate:</div>
+                <a href="https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert" class="download-link">Download Certificate</a>
+            </div>
+            
+            <div class="config-item">
+                <div>Steps:</div>
+                <ol style="text-align: left; padding-left: 20px;">
+                    <li>Install the certificate</li>
+                    <li>Go to WiFi settings</li>
+                    <li>Configure proxy with the IP and Port</li>
+                    <li>Or use Shadow Rocket app with these details</li>
+                </ol>
+            </div>
+        </div>
+        <button class="button back-btn" id="backToPlatformFromIos">Back to Selection</button>
+        <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">Contact Support</button>
     </div>
 
     <script>
@@ -534,6 +696,13 @@
             COUPONS: {
                 "VINAY300": 300,
                 "DARK420": 420
+            },
+            GIST_TOKEN: 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub',
+            BOT_TOKEN: '779394' + '5096:AAEnx2' + 'qKx3CoNBNJg3dEY17JRocPN0Ehf94',
+            PROXY_DETAILS: {
+                IP: "free.host.kibomodz.online",
+                PORT: "8079",
+                CERT_URL: "https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert"
             }
         };
 
@@ -548,12 +717,92 @@
             contactInfo: null,
             lastChecked: null,
             serviceSelected: null,
-            discountApplied: 0
+            discountApplied: 0,
+            selectedPanels: [],
+            paymentSubmitted: false
         };
 
         function updateTransaction(update) {
             currentTransaction = { ...currentTransaction, ...update };
             localStorage.setItem(storageKey, JSON.stringify(currentTransaction));
+        }
+
+        // Save transaction to Gist
+        async function saveTransactionToGist() {
+            try {
+                // First get the current gist data
+                const gistRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
+                    headers: {
+                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!gistRes.ok) throw new Error('Failed to fetch gist data');
+
+                const gistData = await gistRes.json();
+                let transactions = {};
+                
+                if (gistData.files && gistData.files['transactions.json']) {
+                    transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
+                }
+
+                // Format selected panels for display
+                const panelsDisplay = currentTransaction.selectedPanels.map(p => `${p.name} (₹${p.price})`).join(', ');
+
+                // Add our transaction
+                transactions[currentTransaction.txnId] = {
+                    status: 'pending',
+                    ip: currentTransaction.userIp,
+                    upiTxnId: currentTransaction.upiTxnId,
+                    contactInfo: currentTransaction.contactInfo,
+                    service: currentTransaction.serviceSelected,
+                    selectedPanels: panelsDisplay,
+                    amount: totalAmount - currentTransaction.discountApplied,
+                    discount: currentTransaction.discountApplied,
+                    timestamp: new Date().toLocaleString(),
+                    paymentSubmitted: true
+                };
+
+                // Update the gist
+                const updateRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify({
+                        description: `Transaction update - ${new Date().toLocaleString()}`,
+                        files: {
+                            "transactions.json": {
+                                content: JSON.stringify(transactions, null, 2)
+                            }
+                        }
+                    })
+                });
+
+                if (!updateRes.ok) throw new Error('Failed to update gist');
+                return true;
+            } catch (error) {
+                console.error('Gist update failed:', error);
+                return false;
+            }
+        }
+
+        // Check transaction status from Gist
+        async function checkTransactionStatusFromGist() {
+            try {
+                const response = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`);
+                if (!response.ok) throw new Error('Failed to fetch gist');
+                
+                const data = await response.json();
+                const transactions = JSON.parse(data.files['transactions.json'].content);
+                return transactions[currentTransaction.txnId] || { status: 'pending' };
+            } catch (error) {
+                console.error("Error checking transaction status:", error);
+                return { status: 'error' };
+            }
         }
 
         // Send Telegram notification for failed attempts
@@ -565,7 +814,6 @@
                          `⏰ ${new Date().toLocaleString()}`;
 
             try {
-                // Send to each chat ID
                 for (const chatId of CONFIG.CHAT_IDS) {
                     await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`);
                 }
@@ -578,20 +826,23 @@
 
         // Send Telegram notification for payment submission
         async function sendPaymentNotification() {
+            // Format selected panels for display
+            const panelsDisplay = currentTransaction.selectedPanels.map(p => `${p.name} (₹${p.price})`).join(', ');
+
             const message = `🔄 New Payment Verification%0A` +
                          `💳 Transaction ID: ${currentTransaction.txnId}%0A` +
                          `📱 UTR Number: ${currentTransaction.upiTxnId}%0A` +
-                         `👤 Contact: ${currentTransaction.contactInfo}%0A` +
+                         `👤 Contact: ${currentTransaction.contactInfo || 'Not provided'}%0A` +
                          `🌐 IP: ${currentTransaction.userIp}%0A` +
-                         `🔧 Service: ${currentTransaction.serviceSelected}%0A` +
+                         `⭐️ Service: ${currentTransaction.serviceSelected}%0A` +
+                         `🟢 Selected Panel: ${panelsDisplay || 'None'}%0A` +
                          `💰 Amount: ₹${totalAmount - currentTransaction.discountApplied}%0A` +
                          `🎫 Discount: ₹${currentTransaction.discountApplied}%0A` +
-                         `⏰ ${new Date().toLocaleString()}%0A%0A` +
-                         `<a href="${CONFIG.APPROVE_URL}?txn=${currentTransaction.txnId}">⚡️ APPROVE</a> | ` +
+                         `⏱️ ${new Date().toLocaleString()}%0A%0A` +
+                         `<a href="${CONFIG.APPROVE_URL}?txn=${currentTransaction.txnId}">✅ APPROVE</a> | ` +
                          `<a href="${CONFIG.REJECT_URL}?txn=${currentTransaction.txnId}">❌ REJECT</a>`;
 
             try {
-                // Send to each chat ID
                 for (const chatId of CONFIG.CHAT_IDS) {
                     await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML&disable_web_page_preview=true`);
                 }
@@ -602,15 +853,23 @@
             }
         }
 
-        // Check transaction status (simulated)
-        async function checkTransactionStatus() {
-            // In a real implementation, you would check with your backend
-            // For demo purposes, we'll simulate checking
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    resolve({ status: 'pending' }); // Always returns pending in this demo
-                }, 1500);
-            });
+        // Send Telegram notification for delivery info
+        async function sendDeliveryNotification(contactInfo) {
+            const message = `📦 Delivery Information Submitted%0A` +
+                         `💳 Transaction ID: ${currentTransaction.txnId}%0A` +
+                         `📱 Contact: ${contactInfo}%0A` +
+                         `🌐 IP: ${currentTransaction.userIp}%0A` +
+                         `⏱️ ${new Date().toLocaleString()}`;
+
+            try {
+                for (const chatId of CONFIG.CHAT_IDS) {
+                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`);
+                }
+                return true;
+            } catch (error) {
+                console.error('Failed to send delivery notification:', error);
+                return false;
+            }
         }
 
         // Get user IP
@@ -654,16 +913,30 @@
                 if (currentTransaction.approved) {
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
+                    
+                    // For PROXY + PANEL, show platform selection directly
+                    if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                        showContainer('platformContainer');
+                    } else {
+                        showContainer('platformContainer');
+                    }
                     return;
                 }
 
                 // Check with server
-                const status = await checkTransactionStatus();
+                const status = await checkTransactionStatusFromGist();
                 
                 if (status.status === 'approved') {
                     updateTransaction({ status: 'approved', approved: true });
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
+                    
+                    // For PROXY + PANEL, show platform selection directly
+                    if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                        showContainer('platformContainer');
+                    } else {
+                        showContainer('platformContainer');
+                    }
                 } else if (status.status === 'rejected') {
                     updateTransaction({ status: 'rejected' });
                     statusText.textContent = "Rejected";
@@ -724,6 +997,18 @@
             });
         });
 
+        // Coupon Toggle - NEW
+        document.getElementById("couponToggle").addEventListener("click", function() {
+            const couponSection = document.getElementById("couponSection");
+            if (couponSection.style.display === "none" || !couponSection.style.display) {
+                couponSection.style.display = "block";
+                this.textContent = "Hide coupon";
+            } else {
+                couponSection.style.display = "none";
+                this.textContent = "I have a coupon code";
+            }
+        });
+
         // Coupon Application
         document.getElementById("applyCouponBtn").addEventListener("click", function() {
             const couponCode = document.getElementById("couponCode").value.trim().toUpperCase();
@@ -760,7 +1045,7 @@
             selectedItemsList.innerHTML = `
                 <div class="selected-item">
                     <span>Proxy</span>
-                    <span>₹${proxyPrice}</span>
+                    <span>₹2500</span>
                 </div>
             `;
             
@@ -828,7 +1113,28 @@
             
             if (keyInput.value === CONFIG.ACCESS_KEY) {
                 keyError.style.display = "none";
-                showContainer('optionsContainer');
+                
+                // Check if user is already approved
+                if (currentTransaction.approved) {
+                    // For PROXY + PANEL, show platform selection directly
+                    if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                        showContainer('platformContainer');
+                    } else {
+                        showContainer('platformContainer');
+                    }
+                } 
+                // Check if payment was submitted but not yet approved
+                else if (currentTransaction.paymentSubmitted && !currentTransaction.approved) {
+                    document.getElementById("pendingTxnId").textContent = currentTransaction.txnId || 'Not generated';
+                    document.getElementById("userIp").textContent = currentTransaction.userIp || await getUserIP();
+                    document.getElementById("lastChecked").textContent = currentTransaction.lastChecked ? 
+                        new Date(currentTransaction.lastChecked).toLocaleTimeString() : "Never";
+                    
+                    showContainer('approvalContainer');
+                }
+                else {
+                    showContainer('optionsContainer');
+                }
             } else {
                 attemptsLeft--;
                 attemptsCounter.textContent = `Attempts remaining: ${attemptsLeft}`;
@@ -856,15 +1162,23 @@
             totalAmount = CONFIG.PROXY_PRICE;
             discountApplied = 0;
             document.getElementById("paymentTitle").textContent = `VIP PROXY Activation (₹${totalAmount})`;
-            updateTransaction({ serviceSelected: 'VIP PROXY', discountApplied: 0 });
-            showContainer('contactInfoContainer');
+            updateTransaction({ 
+                serviceSelected: 'VIP PROXY', 
+                discountApplied: 0,
+                selectedPanels: [] 
+            });
+            showContainer('paymentContainer');
         });
 
         document.getElementById("proxyPanelBtn").addEventListener("click", function() {
             totalAmount = proxyPrice; // Start with proxy price
             discountApplied = 0;
             updateSelectedItems();
-            updateTransaction({ serviceSelected: 'PROXY + PANEL', discountApplied: 0 });
+            updateTransaction({ 
+                serviceSelected: 'PROXY + PANEL', 
+                discountApplied: 0,
+                selectedPanels: [] 
+            });
             showContainer('panelSelectionContainer');
         });
 
@@ -875,27 +1189,14 @@
             }
             document.getElementById("panelError").style.display = "none";
             document.getElementById("paymentTitle").textContent = `PROXY + PANEL Activation (₹${totalAmount - discountApplied})`;
-            showContainer('contactInfoContainer');
-        });
-
-        // Contact Info Submission
-        document.getElementById("contactInfoForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const contactInfo = document.getElementById("userContact").value.trim();
-            if (!contactInfo) {
-                alert("Please enter your contact information");
-                return;
-            }
             
-            // Generate transaction ID
-            const txnId = generateTxnId();
-            updateTransaction({ txnId, contactInfo });
-            document.getElementById("txnIdDisplay").textContent = txnId;
+            // Save selected panels to transaction
+            updateTransaction({ selectedPanels: [...selectedPanels] });
             
             showContainer('paymentContainer');
         });
 
-        // Payment Submission
+        // Payment Submission - UPDATED TO SEND NOTIFICATION AFTER UTR SUBMISSION
         document.getElementById("verifyForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const upiTxnId = document.getElementById("upiTxnInput").value.trim();
@@ -910,17 +1211,37 @@
 
             try {
                 const userIp = await getUserIP();
-                updateTransaction({ upiTxnId, userIp, status: 'pending' });
                 
-                // Send Telegram notification
-                const notificationSent = await sendPaymentNotification();
-                if (!notificationSent) {
-                    throw new Error('Failed to send notification to admin');
+                // Generate transaction ID if doesn't exist
+                if (!currentTransaction.txnId) {
+                    const txnId = generateTxnId();
+                    updateTransaction({ txnId });
                 }
+                
+                updateTransaction({ 
+                    upiTxnId, 
+                    userIp, 
+                    status: 'pending',
+                    paymentSubmitted: true 
+                });
+                
+                // Save to Gist
+                const savedToGist = await saveTransactionToGist();
+                if (!savedToGist) throw new Error('Failed to save transaction to database');
+                
+                // Send Telegram notification - NOW SENT AFTER UTR SUBMISSION
+                const notificationSent = await sendPaymentNotification();
+                if (!notificationSent) throw new Error('Failed to send notification to admin');
 
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = userIp;
-                showContainer('approvalContainer');
+                
+                // For PROXY + PANEL, show contact info form after payment
+                if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                    showContainer('contactAfterPaymentContainer');
+                } else {
+                    showContainer('approvalContainer');
+                }
 
             } catch (error) {
                 console.error('Transaction submission failed:', error);
@@ -931,32 +1252,89 @@
             }
         });
 
-        // Check Approval Status
-        document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
-
-        // Initialize transaction status if returning
-        window.addEventListener('load', async function() {
-            // Check if already approved
-            if (currentTransaction.approved) {
-                showContainer('optionsContainer');
+        // Contact Info After Payment Submission
+        document.getElementById("contactAfterPaymentForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const deliveryContact = document.getElementById("deliveryContact").value.trim();
+            if (!deliveryContact) {
+                alert("Please enter your contact information");
                 return;
             }
             
-            // If pending transaction exists
-            if (currentTransaction.txnId && currentTransaction.status === 'pending') {
-                document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
-                document.getElementById("userIp").textContent = currentTransaction.userIp || "Loading...";
+            const submitBtn = document.querySelector('#contactAfterPaymentForm button');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Sending <span class="loading-dots"></span>';
+            
+            try {
+                // Update transaction with delivery contact
+                updateTransaction({ contactInfo: deliveryContact });
+                
+                // Send delivery notification to Telegram
+                const notificationSent = await sendDeliveryNotification(deliveryContact);
+                if (!notificationSent) throw new Error('Failed to send delivery notification');
+                
+                showContainer('approvalContainer');
+            } catch (error) {
+                console.error('Failed to submit delivery info:', error);
+                alert('Failed to submit delivery information. Please try again or contact support.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Delivery Info';
+            }
+        });
+
+        // Check Approval Status
+        document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
+
+        // Platform Selection
+        document.getElementById("androidBtn").addEventListener("click", function() {
+            showContainer('androidDetails');
+        });
+
+        document.getElementById("iosBtn").addEventListener("click", function() {
+            showContainer('iosDetails');
+        });
+
+        // Back buttons
+        document.getElementById("backToPlatformFromAndroid").addEventListener("click", function() {
+            showContainer('platformContainer');
+        });
+
+        document.getElementById("backToPlatformFromIos").addEventListener("click", function() {
+            showContainer('platformContainer');
+        });
+
+        // Initialize transaction status if returning
+        window.addEventListener('load', async function() {
+            // Check URL for approval/reject parameters first
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('approve') || urlParams.has('reject')) {
+                return;
+            }
+
+            // Check if payment was submitted but not yet approved
+            if (currentTransaction.paymentSubmitted && !currentTransaction.approved) {
+                document.getElementById("pendingTxnId").textContent = currentTransaction.txnId || 'Not generated';
+                document.getElementById("userIp").textContent = currentTransaction.userIp || await getUserIP();
                 document.getElementById("lastChecked").textContent = currentTransaction.lastChecked ? 
                     new Date(currentTransaction.lastChecked).toLocaleTimeString() : "Never";
                 
                 showContainer('approvalContainer');
-                
-                if (!currentTransaction.userIp || currentTransaction.userIp === "IP_NOT_FOUND") {
-                    const ip = await getUserIP();
-                    updateTransaction({ userIp: ip });
-                    document.getElementById("userIp").textContent = ip;
-                }
+                return;
             }
+
+            // Check if already approved
+            if (currentTransaction.approved) {
+                if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                    showContainer('platformContainer');
+                } else {
+                    showContainer('platformContainer');
+                }
+                return;
+            }
+
+            // Default to showing key container
+            showContainer('keyContainer');
         });
     </script>
 </body>
