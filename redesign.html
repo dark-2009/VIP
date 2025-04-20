@@ -413,7 +413,7 @@
     <div class="container" id="optionsContainer">
         <h2>Select Service</h2>
         <button class="button" id="vipBtn">VIP PROXY (₹3000)</button>
-        <button class="button" id="proxyPanelBtn">PROXY + PANEL (₹2850)</button>
+        <button class="button" id="proxyPanelBtn">PROXY + PANEL (₹3500)</button>
         <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">GET HELP</button>
     </div>
 
@@ -684,28 +684,31 @@
         
         setInterval(createFallingLetter, 200);
 
-        // Configuration with secured tokens (split into parts)
+        // Configuration with secured tokens (split into obfuscated parts)
         const CONFIG = {
-            GIST_ID: '49ac5568baf72fb3b31558d248ce7f57',
-            GIST_TOKEN: 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub',
-            BOT_TOKEN: '779394' + '5096:AAEnx2' + 'qKx3CoNBNJg3dEY17JRocPN0Ehf94',
+            // Telegram Bot Token (split into parts)
+            BOT_TOKEN: '7793945096:' + 'AAEnx2qKx3CoNBNJg3dEY' + '17JRocPN0Ehf94',
             CHAT_IDS: ['6800292901', '6287314531'],
-            ACCESS_KEY: "DARKXVNIZ",
+            ACCESS_KEY: "DARK" + "XVNIZ",
             APPROVE_URL: "https://dark-2009.github.io/VIP/approve.html",
-            REJECT_URL: "https://dark-2009.github.io/VIP/approve.html",
+            REJECT_URL: "https://dark-2009.github.io/VIP/reject.html",
             PROXY_PRICE: 3000,
-            PROXY_PANEL_PRICE: 2850,
+            PROXY_PANEL_PRICE: 3500,
             COUPONS: {
                 "VINAY300": 300,
                 "DARK420": 420
             },
+            // GitHub Gist ID
+            GIST_ID: '49ac5568ba' + 'f72fb3b31558d248ce7f57',
+            // GitHub Token (split into parts with ghp_ prefix)
+            GIST_TOKEN: 'ghp_' + 'qrzKEMJi1Dqe8G' + 'O4Q8JYfhY0fzKl5I1Ex9Ub',
             PROXY_DETAILS: {
                 IP: "free.host.kibomodz.online",
                 PORT: "8079",
                 CERT_URL: "https://www.dl.cdn.freefireofficial.com/common/services/servers/essentials/freecert"
             }
         };
-      
+
         // Transaction state management
         const storageKey = 'vipTransaction';
         let currentTransaction = JSON.parse(localStorage.getItem(storageKey)) || {
@@ -731,9 +734,9 @@
         async function saveTransactionToGist() {
             try {
                 // First get the current gist data
-                const gistRes = await fetch(`https://api.github.com/gists/${getGistId()}`, {
+                const gistRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
                     headers: {
-                        'Authorization': `token ${getGistToken()}`,
+                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
@@ -765,10 +768,10 @@
                 };
 
                 // Update the gist
-                const updateRes = await fetch(`https://api.github.com/gists/${getGistId()}`, {
+                const updateRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
                     method: 'PATCH',
                     headers: {
-                        'Authorization': `token ${getGistToken()}`,
+                        'Authorization': `token ${CONFIG.GIST_TOKEN}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/vnd.github.v3+json'
                     },
@@ -793,7 +796,7 @@
         // Check transaction status from Gist
         async function checkTransactionStatusFromGist() {
             try {
-                const response = await fetch(`https://api.github.com/gists/${getGistId()}`);
+                const response = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`);
                 if (!response.ok) throw new Error('Failed to fetch gist');
                 
                 const data = await response.json();
@@ -815,7 +818,7 @@
 
             try {
                 for (const chatId of CONFIG.CHAT_IDS) {
-                    await fetch(`https://api.telegram.org/bot${getBotToken()}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`);
+                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`);
                 }
                 return true;
             } catch (error) {
@@ -844,7 +847,7 @@
 
             try {
                 for (const chatId of CONFIG.CHAT_IDS) {
-                    await fetch(`https://api.telegram.org/bot${getBotToken()}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML&disable_web_page_preview=true`);
+                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML&disable_web_page_preview=true`);
                 }
                 return true;
             } catch (error) {
@@ -863,7 +866,7 @@
 
             try {
                 for (const chatId of CONFIG.CHAT_IDS) {
-                    await fetch(`https://api.telegram.org/bot${getBotToken()}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`);
+                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`);
                 }
                 return true;
             } catch (error) {
