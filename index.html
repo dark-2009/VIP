@@ -272,7 +272,7 @@
             60%, 100% { content: "..."; }
         }
 
-        /* Coupon Section - UPDATED */
+        /* Coupon Section */
         .coupon-toggle {
             color: var(--neon-purple);
             cursor: pointer;
@@ -286,7 +286,7 @@
             padding: 10px;
             border: 1px dashed var(--neon-purple);
             border-radius: 8px;
-            display: none; /* Initially hidden */
+            display: none;
         }
 
         .coupon-input {
@@ -341,7 +341,7 @@
             margin: 15px 0;
             padding: 10px;
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
+            border-radius: 8px;
             border-left: 3px solid var(--neon-purple);
         }
 
@@ -380,6 +380,51 @@
             background: rgba(0, 0, 0, 0.4);
             border-radius: 8px;
         }
+
+        .delivery-message {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            border-left: 3px solid var(--neon-green);
+        }
+
+        .proxy-option {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid var(--neon-purple);
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .proxy-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .proxy-item.selected {
+            border: 2px solid var(--neon-green);
+            background: rgba(48, 255, 112, 0.1);
+        }
+
+        .summary-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .summary-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--neon-blue);
+        }
     </style>
 </head>
 <body>
@@ -413,10 +458,21 @@
     <div class="container" id="optionsContainer">
         <h2>Select Service</h2>
         <button class="button" id="vipBtn">VIP PROXY (₹3000)</button>
-        <button class="button" id="panelOnlyBtn">PANEL (Starting from ₹500)</button>
-        <button class="button" id="proxyPanelBtn">PROXY + PANEL 
-                                                                                       (Starting from ₹2850)</button>
+        <button class="button" id="panelOnlyBtn">PANEL (Starting from ₹450)</button>
+        <button class="button" id="proxyPanelBtn">PROXY + PANEL (Starting from ₹2850)</button>
         <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">GET HELP</button>
+    </div>
+
+    <!-- Proxy Selection (for PROXY + PANEL) -->
+    <div class="container" id="proxySelectionContainer">
+        <h2>Select Proxy</h2>
+        <div class="proxy-option">
+            <div class="proxy-item" data-price="2500" id="vipProxyOption">
+                <span class="panel-name">VIP PROXY (₹2500)</span>
+            </div>
+        </div>
+        <button class="button" id="continueToPanelSelection">Continue to Panel Selection</button>
+        <p class="error" id="proxyError" style="display: none;">Please select a proxy option!</p>
     </div>
 
     <!-- Panel Selection -->
@@ -425,28 +481,28 @@
         <div class="panel-selector">
             <div class="panel-item">
                 <span class="panel-name">1. Chest Head</span>
-                <span class="panel-action add" data-name="Chest Head" data-price="1000">ADD</span>
+                <span class="panel-action add" data-name="Chest Head" data-price="1000" data-panel-only-price="1500">ADD</span>
             </div>
             <div class="panel-item">
                 <span class="panel-name">2. Neck Head</span>
-                <span class="panel-action add" data-name="Neck Head" data-price="500">ADD</span>
+                <span class="panel-action add" data-name="Neck Head" data-price="500" data-panel-only-price="700">ADD</span>
             </div>
             <div class="panel-item">
                 <span class="panel-name">3. Shoulder Head</span>
-                <span class="panel-action add" data-name="Shoulder Head" data-price="700">ADD</span>
+                <span class="panel-action add" data-name="Shoulder Head" data-price="700" data-panel-only-price="900">ADD</span>
             </div>
             <div class="panel-item">
                 <span class="panel-name">4. Magic Bullet</span>
-                <span class="panel-action add" data-name="Magic Bullet" data-price="350">ADD</span>
+                <span class="panel-action add" data-name="Magic Bullet" data-price="350" data-panel-only-price="450">ADD</span>
             </div>
             <div class="panel-item">
                 <span class="panel-name">5. NPC + 100% Head</span>
-                <span class="panel-action add" data-name="NPC + 100% Head" data-price="900">ADD</span>
+                <span class="panel-action add" data-name="NPC + 100% Head" data-price="850" data-panel-only-price="1200">ADD</span>
             </div>
         </div>
 
-        <!-- Coupon Section - UPDATED -->
-        <div class="coupon-toggle" id="couponToggle">I have a coupon code</div>
+        <!-- Coupon Section (only shown for PROXY + PANEL) -->
+        <div class="coupon-toggle" id="couponToggle" style="display:none">I have a coupon code</div>
         <div class="coupon-section" id="couponSection">
             <h3>Discount Coupon</h3>
             <input type="text" id="couponCode" class="coupon-input" placeholder="Enter coupon code">
@@ -465,8 +521,30 @@
                 <span id="totalAmount">₹0</span>
             </div>
         </div>
-        <button class="button" id="continueToPayment">Continue to Payment</button>
+        <button class="button" id="continueToSummary">Continue to Summary</button>
         <p class="error" id="panelError" style="display: none;">Please select at least one panel to continue!</p>
+    </div>
+
+    <!-- Summary Container -->
+    <div class="container" id="summaryContainer">
+        <h2>Order Summary</h2>
+        <div class="summary-container">
+            <div class="summary-item">
+                <h3>Proxy Selected:</h3>
+                <div id="selectedProxyDisplay">VIP PROXY (₹3000)</div>
+            </div>
+            <div class="summary-item">
+                <h3>Panels Selected:</h3>
+                <div id="selectedPanelsDisplay">
+                    <!-- Panels will be listed here -->
+                </div>
+            </div>
+            <div class="summary-item" style="font-weight: bold;">
+                <div>Total Amount:</div>
+                <div id="summaryTotalAmount">₹2850</div>
+            </div>
+        </div>
+        <button class="button" id="proceedToPayment">Proceed to Payment</button>
     </div>
 
     <!-- Payment Container -->
@@ -527,6 +605,18 @@
         <div class="platform-buttons">
             <button class="button platform-btn" id="androidBtn">ANDROID</button>
             <button class="button platform-btn" id="iosBtn">iOS</button>
+        </div>
+        <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">
+            Contact Support
+        </button>
+    </div>
+
+    <!-- Panel Delivery Message -->
+    <div class="container" id="panelDeliveryContainer">
+        <h2>🎯 PANEL DELIVERY</h2>
+        <div class="delivery-message">
+            <p>Your panel will be delivered within 12 hours to your Telegram messages.</p>
+            <p>Please keep your Telegram notifications enabled.</p>
         </div>
         <button class="button secondary-btn" onclick="window.open('https://t.me/alone120122', '_blank')">
             Contact Support
@@ -721,7 +811,10 @@
             serviceSelected: null,
             discountApplied: 0,
             selectedPanels: [],
-            paymentSubmitted: false
+            paymentSubmitted: false,
+            deviceSelected: null,
+            deviceNotificationSent: false,
+            selectedProxy: null
         };
 
         function updateTransaction(update) {
@@ -754,16 +847,19 @@
 
                 // Add our transaction
                 transactions[currentTransaction.txnId] = {
-                    status: 'pending',
+                    status: currentTransaction.status,
                     ip: currentTransaction.userIp,
                     upiTxnId: currentTransaction.upiTxnId,
                     contactInfo: currentTransaction.contactInfo,
                     service: currentTransaction.serviceSelected,
                     selectedPanels: panelsDisplay,
+                    selectedProxy: currentTransaction.selectedProxy,
                     amount: totalAmount - currentTransaction.discountApplied,
                     discount: currentTransaction.discountApplied,
                     timestamp: new Date().toLocaleString(),
-                    paymentSubmitted: true
+                    paymentSubmitted: currentTransaction.paymentSubmitted,
+                    deviceSelected: currentTransaction.deviceSelected,
+                    deviceNotificationSent: currentTransaction.deviceNotificationSent
                 };
 
                 // Update the gist
@@ -837,6 +933,7 @@
                          `👤 Contact: ${currentTransaction.contactInfo || 'Not provided'}%0A` +
                          `🌐 IP: ${currentTransaction.userIp}%0A` +
                          `⭐️ Service: ${currentTransaction.serviceSelected}%0A` +
+                         `🟢 Selected Proxy: ${currentTransaction.selectedProxy || 'None'}%0A` +
                          `🟢 Selected Panel: ${panelsDisplay || 'None'}%0A` +
                          `💰 Amount: ₹${totalAmount - currentTransaction.discountApplied}%0A` +
                          `🎫 Discount: ₹${currentTransaction.discountApplied}%0A` +
@@ -870,6 +967,32 @@
                 return true;
             } catch (error) {
                 console.error('Failed to send delivery notification:', error);
+                return false;
+            }
+        }
+
+        // Send Telegram notification for device selection
+        async function sendDeviceSelectionNotification(device) {
+            // Only send if not already sent
+            if (currentTransaction.deviceNotificationSent) return true;
+
+            const message = `📱 Device Selection%0A` +
+                         `💳 Transaction ID: ${currentTransaction.txnId}%0A` +
+                         `📱 Device: ${device}%0A` +
+                         `👤 Contact: ${currentTransaction.contactInfo || 'Not provided'}%0A` +
+                         `🌐 IP: ${currentTransaction.userIp}%0A` +
+                         `⏱️ ${new Date().toLocaleString()}`;
+
+            try {
+                for (const chatId of CONFIG.CHAT_IDS) {
+                    await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`);
+                }
+                // Mark as sent
+                updateTransaction({ deviceNotificationSent: true });
+                await saveTransactionToGist();
+                return true;
+            } catch (error) {
+                console.error('Failed to send device selection notification:', error);
                 return false;
             }
         }
@@ -915,13 +1038,7 @@
                 if (currentTransaction.approved) {
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
-                    
-                    // For PROXY + PANEL, show platform selection directly
-                    if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
-                        showContainer('platformContainer');
-                    } else {
-                        showContainer('platformContainer');
-                    }
+                    showContainer('optionsContainer');
                     return;
                 }
 
@@ -932,13 +1049,7 @@
                     updateTransaction({ status: 'approved', approved: true });
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
-                    
-                    // For PROXY + PANEL, show platform selection directly
-                    if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
-                        showContainer('platformContainer');
-                    } else {
-                        showContainer('platformContainer');
-                    }
+                    showContainer('optionsContainer');
                 } else if (status.status === 'rejected') {
                     updateTransaction({ status: 'rejected' });
                     statusText.textContent = "Rejected";
@@ -965,11 +1076,28 @@
         let totalAmount = 0;
         let attemptsLeft = 5;
         let discountApplied = 0;
+        let selectedProxy = null;
+
+        // Proxy Selection
+        document.getElementById("vipProxyOption").addEventListener("click", function() {
+            document.querySelectorAll('.proxy-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            selectedProxy = {
+                name: "VIP PROXY",
+                price: 2500
+            };
+            updateTransaction({ selectedProxy });
+        });
 
         document.querySelectorAll('.panel-action').forEach(button => {
             button.addEventListener('click', function() {
                 const panelName = this.dataset.name;
-                const panelPrice = parseInt(this.dataset.price);
+                // Use different price based on service type
+                const panelPrice = currentTransaction.serviceSelected === 'PANEL ONLY' 
+                    ? parseInt(this.dataset.panelOnlyPrice) 
+                    : parseInt(this.dataset.price);
                 
                 if (this.classList.contains('add')) {
                     // Add panel
@@ -998,7 +1126,7 @@
             });
         });
 
-        // Coupon Toggle - NEW
+        // Coupon Toggle - Only shown for PROXY + PANEL
         document.getElementById("couponToggle").addEventListener("click", function() {
             const couponSection = document.getElementById("couponSection");
             if (couponSection.style.display === "none" || !couponSection.style.display) {
@@ -1026,6 +1154,7 @@
                 couponErrorEl.style.display = "none";
                 
                 updateSelectedItems();
+                updateSummary();
             } else {
                 discountApplied = 0;
                 currentTransaction.discountApplied = 0;
@@ -1035,6 +1164,7 @@
                 couponErrorEl.style.display = "block";
                 
                 updateSelectedItems();
+                updateSummary();
             }
         });
 
@@ -1056,8 +1186,8 @@
                 selectedItemsList.appendChild(item);
             });
             
-            // Add discount if applied
-            if (discountApplied > 0) {
+            // Add discount if applied (only for PROXY + PANEL)
+            if (discountApplied > 0 && currentTransaction.serviceSelected === 'PROXY + PANEL') {
                 const discountItem = document.createElement('div');
                 discountItem.className = 'selected-item';
                 discountItem.innerHTML = `
@@ -1070,6 +1200,42 @@
             // Update total
             const finalAmount = Math.max(0, totalAmount - discountApplied);
             totalAmountEl.textContent = `₹${finalAmount}`;
+        }
+
+        function updateSummary() {
+            const selectedPanelsDisplay = document.getElementById('selectedPanelsDisplay');
+            const summaryTotalAmount = document.getElementById('summaryTotalAmount');
+            
+            // Clear existing items
+            selectedPanelsDisplay.innerHTML = '';
+            
+            // Add selected panels to summary
+            selectedPanels.forEach(panel => {
+                const item = document.createElement('div');
+                item.className = 'selected-item';
+                item.innerHTML = `
+                    <span>${panel.name}</span>
+                    <span>₹${panel.price}</span>
+                `;
+                selectedPanelsDisplay.appendChild(item);
+            });
+            
+            // Add discount if applied
+            if (discountApplied > 0) {
+                const discountItem = document.createElement('div');
+                discountItem.className = 'selected-item';
+                discountItem.innerHTML = `
+                    <span>Discount</span>
+                    <span>-₹${discountApplied}</span>
+                `;
+                selectedPanelsDisplay.appendChild(discountItem);
+            }
+            
+            // Calculate and display total
+            const proxyAmount = selectedProxy ? selectedProxy.price : 0;
+            const panelsAmount = selectedPanels.reduce((sum, panel) => sum + panel.price, 0);
+            const finalAmount = Math.max(0, (proxyAmount + panelsAmount) - discountApplied);
+            summaryTotalAmount.textContent = `₹${finalAmount}`;
         }
 
         // Page Navigation
@@ -1112,12 +1278,7 @@
                 
                 // Check if user is already approved
                 if (currentTransaction.approved) {
-                    // For PROXY + PANEL, show platform selection directly
-                    if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
-                        showContainer('platformContainer');
-                    } else {
-                        showContainer('platformContainer');
-                    }
+                    showContainer('optionsContainer');
                 } 
                 // Check if payment was submitted but not yet approved
                 else if (currentTransaction.paymentSubmitted && !currentTransaction.approved) {
@@ -1155,62 +1316,111 @@
 
         // Service Selection
         document.getElementById("vipBtn").addEventListener("click", function() {
-            totalAmount = CONFIG.PROXY_PRICE;
-            discountApplied = 0;
-            document.getElementById("paymentTitle").textContent = `VIP PROXY Activation (₹${totalAmount})`;
-            updateTransaction({ 
-                serviceSelected: 'VIP PROXY', 
-                discountApplied: 0,
-                selectedPanels: [] 
-            });
-            showContainer('paymentContainer');
+            if (currentTransaction.approved && currentTransaction.serviceSelected === 'VIP PROXY') {
+                // Already paid for VIP PROXY - show config directly
+                showContainer('androidDetails');
+            } else {
+                totalAmount = CONFIG.PROXY_PRICE;
+                discountApplied = 0;
+                document.getElementById("paymentTitle").textContent = `VIP PROXY Activation (₹${totalAmount})`;
+                updateTransaction({ 
+                    serviceSelected: 'VIP PROXY', 
+                    discountApplied: 0,
+                    selectedPanels: [],
+                    selectedProxy: { name: "VIP PROXY", price: 3000 }
+                });
+                showContainer('paymentContainer');
+            }
         });
 
         document.getElementById("panelOnlyBtn").addEventListener("click", function() {
-            totalAmount = 0;
-            discountApplied = 0;
-            updateSelectedItems();
-            updateTransaction({ 
-                serviceSelected: 'PANEL ONLY', 
-                discountApplied: 0,
-                selectedPanels: [] 
-            });
-            showContainer('panelSelectionContainer');
+            if (currentTransaction.approved && currentTransaction.serviceSelected === 'PANEL ONLY') {
+                // Already paid for PANEL ONLY - show device selection directly
+                showContainer('platformContainer');
+            } else {
+                totalAmount = 0;
+                discountApplied = 0;
+                // Hide coupon section for panel only
+                document.getElementById("couponToggle").style.display = "none";
+                document.getElementById("couponSection").style.display = "none";
+                updateSelectedItems();
+                updateTransaction({ 
+                    serviceSelected: 'PANEL ONLY', 
+                    discountApplied: 0,
+                    selectedPanels: [],
+                    selectedProxy: null
+                });
+                showContainer('panelSelectionContainer');
+            }
         });
 
         document.getElementById("proxyPanelBtn").addEventListener("click", function() {
-            totalAmount = 0;
-            discountApplied = 0;
-            updateSelectedItems();
-            updateTransaction({ 
-                serviceSelected: 'PROXY + PANEL', 
-                discountApplied: 0,
-                selectedPanels: [] 
-            });
+            if (currentTransaction.approved && currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                // Already paid for PROXY + PANEL - show device selection directly
+                showContainer('platformContainer');
+            } else {
+                totalAmount = 0;
+                discountApplied = 0;
+                // Show coupon section for proxy + panel
+                document.getElementById("couponToggle").style.display = "block";
+                document.getElementById("couponSection").style.display = "none";
+                updateSelectedItems();
+                updateTransaction({ 
+                    serviceSelected: 'PROXY + PANEL', 
+                    discountApplied: 0,
+                    selectedPanels: [],
+                    selectedProxy: null
+                });
+                showContainer('proxySelectionContainer');
+            }
+        });
+
+        // Continue to Panel Selection (from Proxy Selection)
+        document.getElementById("continueToPanelSelection").addEventListener("click", function() {
+            if (!selectedProxy) {
+                document.getElementById("proxyError").style.display = "block";
+                return;
+            }
+            document.getElementById("proxyError").style.display = "none";
             showContainer('panelSelectionContainer');
         });
 
-        document.getElementById("continueToPayment").addEventListener("click", function() {
-            if (selectedPanels.length === 0) {
+        // Continue to Summary (from Panel Selection)
+        document.getElementById("continueToSummary").addEventListener("click", function() {
+            if (selectedPanels.length === 0 && currentTransaction.serviceSelected !== 'VIP PROXY') {
                 document.getElementById("panelError").style.display = "block";
                 return;
             }
             document.getElementById("panelError").style.display = "none";
             
-            // Add proxy price if PROXY + PANEL is selected
-            if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
-                totalAmount += CONFIG.PROXY_PANEL_PRICE;
+            // Update summary display
+            if (selectedProxy) {
+                document.getElementById("selectedProxyDisplay").textContent = `${selectedProxy.name} (₹${selectedProxy.price})`;
             }
+            updateSummary();
+            
+            showContainer('summaryContainer');
+        });
+
+        // Proceed to Payment (from Summary)
+        document.getElementById("proceedToPayment").addEventListener("click", function() {
+            // Calculate total amount
+            const proxyAmount = selectedProxy ? selectedProxy.price : 0;
+            const panelsAmount = selectedPanels.reduce((sum, panel) => sum + panel.price, 0);
+            totalAmount = proxyAmount + panelsAmount;
             
             document.getElementById("paymentTitle").textContent = `${currentTransaction.serviceSelected} Activation (₹${totalAmount - discountApplied})`;
             
-            // Save selected panels to transaction
-            updateTransaction({ selectedPanels: [...selectedPanels] });
+            // Save selections to transaction
+            updateTransaction({ 
+                selectedPanels: [...selectedPanels],
+                selectedProxy: selectedProxy
+            });
             
             showContainer('paymentContainer');
         });
 
-        // Payment Submission - UPDATED TO SEND NOTIFICATION AFTER UTR SUBMISSION
+        // Payment Submission
         document.getElementById("verifyForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const upiTxnId = document.getElementById("upiTxnInput").value.trim();
@@ -1243,7 +1453,7 @@
                 const savedToGist = await saveTransactionToGist();
                 if (!savedToGist) throw new Error('Failed to save transaction to database');
                 
-                // Send Telegram notification - NOW SENT AFTER UTR SUBMISSION
+                // Send Telegram notification
                 const notificationSent = await sendPaymentNotification();
                 if (!notificationSent) throw new Error('Failed to send notification to admin');
 
@@ -1283,7 +1493,13 @@
                 const notificationSent = await sendDeliveryNotification(deliveryContact);
                 if (!notificationSent) throw new Error('Failed to send delivery notification');
                 
-                showContainer('approvalContainer');
+                // For PANEL ONLY or PROXY + PANEL, show delivery message
+                if (currentTransaction.serviceSelected === 'PANEL ONLY' || currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                    showContainer('panelDeliveryContainer');
+                } else {
+                    // For VIP PROXY only, show platform selection
+                    showContainer('platformContainer');
+                }
             } catch (error) {
                 console.error('Failed to submit delivery info:', error);
                 alert('Failed to submit delivery information. Please try again or contact support.');
@@ -1297,12 +1513,40 @@
         document.getElementById("checkApprovalBtn").addEventListener("click", checkApprovalStatus);
 
         // Platform Selection
-        document.getElementById("androidBtn").addEventListener("click", function() {
-            showContainer('androidDetails');
+        document.getElementById("androidBtn").addEventListener("click", async function() {
+            const device = "ANDROID";
+            updateTransaction({ deviceSelected: device });
+            
+            // Save to Gist
+            await saveTransactionToGist();
+            
+            // Send notification (only if not already sent)
+            await sendDeviceSelectionNotification(device);
+            
+            // For PANEL ONLY or PROXY + PANEL, show delivery message
+            if (currentTransaction.serviceSelected === 'PANEL ONLY' || currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                showContainer('panelDeliveryContainer');
+            } else {
+                showContainer('androidDetails');
+            }
         });
 
-        document.getElementById("iosBtn").addEventListener("click", function() {
-            showContainer('iosDetails');
+        document.getElementById("iosBtn").addEventListener("click", async function() {
+            const device = "iOS";
+            updateTransaction({ deviceSelected: device });
+            
+            // Save to Gist
+            await saveTransactionToGist();
+            
+            // Send notification (only if not already sent)
+            await sendDeviceSelectionNotification(device);
+            
+            // For PANEL ONLY or PROXY + PANEL, show delivery message
+            if (currentTransaction.serviceSelected === 'PANEL ONLY' || currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                showContainer('panelDeliveryContainer');
+            } else {
+                showContainer('iosDetails');
+            }
         });
 
         // Back buttons
@@ -1335,11 +1579,7 @@
 
             // Check if already approved
             if (currentTransaction.approved) {
-                if (currentTransaction.serviceSelected === 'PROXY + PANEL') {
-                    showContainer('platformContainer');
-                } else {
-                    showContainer('platformContainer');
-                }
+                showContainer('optionsContainer');
                 return;
             }
 
