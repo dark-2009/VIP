@@ -814,7 +814,8 @@
             paymentSubmitted: false,
             deviceSelected: null,
             deviceNotificationSent: false,
-            selectedProxy: null
+            selectedProxy: null,
+            contactInfoSubmitted: false
         };
 
         function updateTransaction(update) {
@@ -825,7 +826,6 @@
         // Save transaction to Gist
         async function saveTransactionToGist() {
             try {
-                // First get the current gist data
                 const gistRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
                     headers: {
                         'Authorization': `token ${CONFIG.GIST_TOKEN}`,
@@ -842,10 +842,8 @@
                     transactions = JSON.parse(gistData.files['transactions.json'].content) || {};
                 }
 
-                // Format selected panels for display
                 const panelsDisplay = currentTransaction.selectedPanels.map(p => `${p.name} (₹${p.price})`).join(', ');
 
-                // Add our transaction
                 transactions[currentTransaction.txnId] = {
                     status: currentTransaction.status,
                     ip: currentTransaction.userIp,
@@ -859,10 +857,10 @@
                     timestamp: new Date().toLocaleString(),
                     paymentSubmitted: currentTransaction.paymentSubmitted,
                     deviceSelected: currentTransaction.deviceSelected,
-                    deviceNotificationSent: currentTransaction.deviceNotificationSent
+                    deviceNotificationSent: currentTransaction.deviceNotificationSent,
+                    contactInfoSubmitted: currentTransaction.contactInfoSubmitted
                 };
 
-                // Update the gist
                 const updateRes = await fetch(`https://api.github.com/gists/${CONFIG.GIST_ID}`, {
                     method: 'PATCH',
                     headers: {
@@ -924,7 +922,6 @@
 
         // Send Telegram notification for payment submission
         async function sendPaymentNotification() {
-            // Format selected panels for display
             const panelsDisplay = currentTransaction.selectedPanels.map(p => `${p.name} (₹${p.price})`).join(', ');
 
             const message = `🔄 New Payment Verification%0A` +
@@ -973,7 +970,6 @@
 
         // Send Telegram notification for device selection
         async function sendDeviceSelectionNotification(device) {
-            // Only send if not already sent
             if (currentTransaction.deviceNotificationSent) return true;
 
             const message = `📱 Device Selection%0A` +
@@ -987,7 +983,6 @@
                 for (const chatId of CONFIG.CHAT_IDS) {
                     await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`);
                 }
-                // Mark as sent
                 updateTransaction({ deviceNotificationSent: true });
                 await saveTransactionToGist();
                 return true;
@@ -1034,22 +1029,32 @@
                 lastCheckedEl.textContent = now.toLocaleTimeString();
                 updateTransaction({ lastChecked: now.toISOString() });
 
-                // Check if already approved locally
                 if (currentTransaction.approved) {
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
-                    showContainer('optionsContainer');
+                    
+                    if (!currentTransaction.contactInfoSubmitted) {
+                        showContainer('contactAfterPaymentContainer');
+                    } else {
+                        if (currentTransaction.serviceSelected === 'PANEL ONLY') {
+                            showContainer('panelDeliveryContainer');
+                        } else {
+                            showContainer('platformContainer');
+                        }
+                    }
                     return;
                 }
 
-                // Check with server
                 const status = await checkTransactionStatusFromGist();
                 
                 if (status.status === 'approved') {
-                    updateTransaction({ status: 'approved', approved: true });
+                    updateTransaction({ 
+                        status: 'approved', 
+                        approved: true 
+                    });
                     statusText.textContent = "Approved";
                     statusText.style.color = "#0f0";
-                    showContainer('optionsContainer');
+                    showContainer('contactAfterPaymentContainer');
                 } else if (status.status === 'rejected') {
                     updateTransaction({ status: 'rejected' });
                     statusText.textContent = "Rejected";
@@ -1094,29 +1099,24 @@
         document.querySelectorAll('.panel-action').forEach(button => {
             button.addEventListener('click', function() {
                 const panelName = this.dataset.name;
-                // Use different price based on service type
                 const panelPrice = currentTransaction.serviceSelected === 'PANEL ONLY' 
                     ? parseInt(this.dataset.panelOnlyPrice) 
                     : parseInt(this.dataset.price);
                 
                 if (this.classList.contains('add')) {
-                    // Add panel
                     selectedPanels.push({ name: panelName, price: panelPrice });
                     totalAmount += panelPrice;
                     
-                    // Update button
                     this.textContent = 'REMOVE';
                     this.classList.remove('add');
                     this.classList.add('remove');
                 } else {
-                    // Remove panel
                     const index = selectedPanels.findIndex(p => p.name === panelName);
                     if (index !== -1) {
                         totalAmount -= selectedPanels[index].price;
                         selectedPanels.splice(index, 1);
                     }
                     
-                    // Update button
                     this.textContent = 'ADD';
                     this.classList.remove('remove');
                     this.classList.add('add');
@@ -1126,7 +1126,7 @@
             });
         });
 
-        // Coupon Toggle - Only shown for PROXY + PANEL
+        // Coupon Toggle
         document.getElementById("couponToggle").addEventListener("click", function() {
             const couponSection = document.getElementById("couponSection");
             if (couponSection.style.display === "none" || !couponSection.style.display) {
@@ -1172,10 +1172,8 @@
             const selectedItemsList = document.getElementById('selectedItemsList');
             const totalAmountEl = document.getElementById('totalAmount');
             
-            // Clear existing items
             selectedItemsList.innerHTML = '';
             
-            // Add selected panels
             selectedPanels.forEach(panel => {
                 const item = document.createElement('div');
                 item.className = 'selected-item';
@@ -1186,7 +1184,6 @@
                 selectedItemsList.appendChild(item);
             });
             
-            // Add discount if applied (only for PROXY + PANEL)
             if (discountApplied > 0 && currentTransaction.serviceSelected === 'PROXY + PANEL') {
                 const discountItem = document.createElement('div');
                 discountItem.className = 'selected-item';
@@ -1197,7 +1194,6 @@
                 selectedItemsList.appendChild(discountItem);
             }
             
-            // Update total
             const finalAmount = Math.max(0, totalAmount - discountApplied);
             totalAmountEl.textContent = `₹${finalAmount}`;
         }
@@ -1206,10 +1202,8 @@
             const selectedPanelsDisplay = document.getElementById('selectedPanelsDisplay');
             const summaryTotalAmount = document.getElementById('summaryTotalAmount');
             
-            // Clear existing items
             selectedPanelsDisplay.innerHTML = '';
             
-            // Add selected panels to summary
             selectedPanels.forEach(panel => {
                 const item = document.createElement('div');
                 item.className = 'selected-item';
@@ -1220,7 +1214,6 @@
                 selectedPanelsDisplay.appendChild(item);
             });
             
-            // Add discount if applied
             if (discountApplied > 0) {
                 const discountItem = document.createElement('div');
                 discountItem.className = 'selected-item';
@@ -1231,7 +1224,6 @@
                 selectedPanelsDisplay.appendChild(discountItem);
             }
             
-            // Calculate and display total
             const proxyAmount = selectedProxy ? selectedProxy.price : 0;
             const panelsAmount = selectedPanels.reduce((sum, panel) => sum + panel.price, 0);
             const finalAmount = Math.max(0, (proxyAmount + panelsAmount) - discountApplied);
@@ -1276,11 +1268,9 @@
             if (keyInput.value === CONFIG.ACCESS_KEY) {
                 keyError.style.display = "none";
                 
-                // Check if user is already approved
                 if (currentTransaction.approved) {
                     showContainer('optionsContainer');
                 } 
-                // Check if payment was submitted but not yet approved
                 else if (currentTransaction.paymentSubmitted && !currentTransaction.approved) {
                     document.getElementById("pendingTxnId").textContent = currentTransaction.txnId || 'Not generated';
                     document.getElementById("userIp").textContent = currentTransaction.userIp || await getUserIP();
@@ -1297,7 +1287,6 @@
                 attemptsCounter.textContent = `Attempts remaining: ${attemptsLeft}`;
                 keyError.style.display = "block";
                 
-                // Send failed attempt notification
                 await sendFailedAttemptNotification(attemptsLeft);
                 
                 keyInput.value = '';
@@ -1317,7 +1306,6 @@
         // Service Selection
         document.getElementById("vipBtn").addEventListener("click", function() {
             if (currentTransaction.approved && currentTransaction.serviceSelected === 'VIP PROXY') {
-                // Already paid for VIP PROXY - show config directly
                 showContainer('androidDetails');
             } else {
                 totalAmount = CONFIG.PROXY_PRICE;
@@ -1335,12 +1323,10 @@
 
         document.getElementById("panelOnlyBtn").addEventListener("click", function() {
             if (currentTransaction.approved && currentTransaction.serviceSelected === 'PANEL ONLY') {
-                // Already paid for PANEL ONLY - show device selection directly
                 showContainer('platformContainer');
             } else {
                 totalAmount = 0;
                 discountApplied = 0;
-                // Hide coupon section for panel only
                 document.getElementById("couponToggle").style.display = "none";
                 document.getElementById("couponSection").style.display = "none";
                 updateSelectedItems();
@@ -1356,12 +1342,10 @@
 
         document.getElementById("proxyPanelBtn").addEventListener("click", function() {
             if (currentTransaction.approved && currentTransaction.serviceSelected === 'PROXY + PANEL') {
-                // Already paid for PROXY + PANEL - show device selection directly
                 showContainer('platformContainer');
             } else {
                 totalAmount = 0;
                 discountApplied = 0;
-                // Show coupon section for proxy + panel
                 document.getElementById("couponToggle").style.display = "block";
                 document.getElementById("couponSection").style.display = "none";
                 updateSelectedItems();
@@ -1393,7 +1377,6 @@
             }
             document.getElementById("panelError").style.display = "none";
             
-            // Update summary display
             if (selectedProxy) {
                 document.getElementById("selectedProxyDisplay").textContent = `${selectedProxy.name} (₹${selectedProxy.price})`;
             }
@@ -1404,14 +1387,12 @@
 
         // Proceed to Payment (from Summary)
         document.getElementById("proceedToPayment").addEventListener("click", function() {
-            // Calculate total amount
             const proxyAmount = selectedProxy ? selectedProxy.price : 0;
             const panelsAmount = selectedPanels.reduce((sum, panel) => sum + panel.price, 0);
             totalAmount = proxyAmount + panelsAmount;
             
             document.getElementById("paymentTitle").textContent = `${currentTransaction.serviceSelected} Activation (₹${totalAmount - discountApplied})`;
             
-            // Save selections to transaction
             updateTransaction({ 
                 selectedPanels: [...selectedPanels],
                 selectedProxy: selectedProxy
@@ -1436,7 +1417,6 @@
             try {
                 const userIp = await getUserIP();
                 
-                // Generate transaction ID if doesn't exist
                 if (!currentTransaction.txnId) {
                     const txnId = generateTxnId();
                     updateTransaction({ txnId });
@@ -1449,19 +1429,16 @@
                     paymentSubmitted: true 
                 });
                 
-                // Save to Gist
                 const savedToGist = await saveTransactionToGist();
                 if (!savedToGist) throw new Error('Failed to save transaction to database');
                 
-                // Send Telegram notification
                 const notificationSent = await sendPaymentNotification();
                 if (!notificationSent) throw new Error('Failed to send notification to admin');
 
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId;
                 document.getElementById("userIp").textContent = userIp;
                 
-                // Show contact info form after payment for all services
-                showContainer('contactAfterPaymentContainer');
+                showContainer('approvalContainer');
 
             } catch (error) {
                 console.error('Transaction submission failed:', error);
@@ -1486,18 +1463,17 @@
             submitBtn.innerHTML = 'Sending <span class="loading-dots"></span>';
             
             try {
-                // Update transaction with delivery contact
-                updateTransaction({ contactInfo: deliveryContact });
+                updateTransaction({ 
+                    contactInfo: deliveryContact,
+                    contactInfoSubmitted: true 
+                });
                 
-                // Send delivery notification to Telegram
                 const notificationSent = await sendDeliveryNotification(deliveryContact);
                 if (!notificationSent) throw new Error('Failed to send delivery notification');
                 
-                // For PANEL ONLY or PROXY + PANEL, show delivery message
-                if (currentTransaction.serviceSelected === 'PANEL ONLY' || currentTransaction.serviceSelected === 'PROXY + PANEL') {
+                if (currentTransaction.serviceSelected === 'PANEL ONLY') {
                     showContainer('panelDeliveryContainer');
                 } else {
-                    // For VIP PROXY only, show platform selection
                     showContainer('platformContainer');
                 }
             } catch (error) {
@@ -1517,14 +1493,10 @@
             const device = "ANDROID";
             updateTransaction({ deviceSelected: device });
             
-            // Save to Gist
             await saveTransactionToGist();
-            
-            // Send notification (only if not already sent)
             await sendDeviceSelectionNotification(device);
             
-            // For PANEL ONLY or PROXY + PANEL, show delivery message
-            if (currentTransaction.serviceSelected === 'PANEL ONLY' || currentTransaction.serviceSelected === 'PROXY + PANEL') {
+            if (currentTransaction.serviceSelected === 'PANEL ONLY') {
                 showContainer('panelDeliveryContainer');
             } else {
                 showContainer('androidDetails');
@@ -1535,14 +1507,10 @@
             const device = "iOS";
             updateTransaction({ deviceSelected: device });
             
-            // Save to Gist
             await saveTransactionToGist();
-            
-            // Send notification (only if not already sent)
             await sendDeviceSelectionNotification(device);
             
-            // For PANEL ONLY or PROXY + PANEL, show delivery message
-            if (currentTransaction.serviceSelected === 'PANEL ONLY' || currentTransaction.serviceSelected === 'PROXY + PANEL') {
+            if (currentTransaction.serviceSelected === 'PANEL ONLY') {
                 showContainer('panelDeliveryContainer');
             } else {
                 showContainer('iosDetails');
@@ -1560,13 +1528,11 @@
 
         // Initialize transaction status if returning
         window.addEventListener('load', async function() {
-            // Check URL for approval/reject parameters first
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('approve') || urlParams.has('reject')) {
                 return;
             }
 
-            // Check if payment was submitted but not yet approved
             if (currentTransaction.paymentSubmitted && !currentTransaction.approved) {
                 document.getElementById("pendingTxnId").textContent = currentTransaction.txnId || 'Not generated';
                 document.getElementById("userIp").textContent = currentTransaction.userIp || await getUserIP();
@@ -1577,13 +1543,19 @@
                 return;
             }
 
-            // Check if already approved
             if (currentTransaction.approved) {
-                showContainer('optionsContainer');
+                if (!currentTransaction.contactInfoSubmitted) {
+                    showContainer('contactAfterPaymentContainer');
+                } else {
+                    if (currentTransaction.serviceSelected === 'PANEL ONLY') {
+                        showContainer('panelDeliveryContainer');
+                    } else {
+                        showContainer('platformContainer');
+                    }
+                }
                 return;
             }
 
-            // Default to showing key container
             showContainer('keyContainer');
         });
     </script>
